@@ -48,7 +48,7 @@ function isLoggedIn(req, res, next) {
 }
  
 app.get("/", function (req, res) {
-    res.send("Hello!");
+    res.send("Hey! Hello!");
 });
  
 // api endpoints for login, content and logout
