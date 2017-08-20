@@ -4,7 +4,10 @@ var express         = require('express'),
     LocalStrategy   = require('passport-local').Strategy,
     bodyParser      = require('body-parser'),
     session         = require('express-session');
- 
+
+// Configure app.
+app.use(express.static(__dirname + '/html'));
+
 // hardcoded users, ideally the users should be stored in a database
 var users = [{"id":1, "username":"root", "password":"root"}];
  
@@ -46,9 +49,10 @@ function isLoggedIn(req, res, next) {
  
     res.sendStatus(401);
 }
- 
+
+// Main page.
 app.get("/", function (req, res) {
-    res.send("Hey! Hello!");
+  res.render('./html/index.html');
 });
  
 // api endpoints for login, content and logout
