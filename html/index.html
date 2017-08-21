@@ -13,8 +13,11 @@
       socket.on('connect', function(data) {
         socket.emit('clientmessage', '::io:: Bonjour !!');
       });
+      function onTest() {
+      }
     </script>
     <p>Hey !</p>
+    <p><a href="#" onclick="onTest();">test</a></p>
     <br/><br/><a href="/logout">logout</a>
   </body>
 </html>
