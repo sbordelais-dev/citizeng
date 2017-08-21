@@ -6,7 +6,7 @@ var express         = require('express'),
     session         = require('express-session');
 
 // Configure app.
-app.use(express.static(__dirname + '/html'));
+//app.use(express.static(__dirname + "/html"));
 
 // hardcoded users, ideally the users should be stored in a database
 var users = [{"id":1, "username":"root", "password":"root"}];
@@ -30,48 +30,72 @@ passport.use('local-login', new LocalStrategy(
     })
 );
  
-// body-parser for retrieving form data
+// Retrieving form data.
 app.use(bodyParser.json()); 
 app.use(bodyParser.urlencoded({ extended: true }));
  
-// initialize passposrt and and session for persistent login sessions
+// Initialize passposrt and and session for persistent login sessions.
 app.use(session({
-    secret: "tHiSiSasEcRetStr",
+    secret: "chainesecrete",
     resave: true,
     saveUninitialized: true }));
 app.use(passport.initialize());
 app.use(passport.session());
  
-// route middleware to ensure user is logged in
+// Route middleware to ensure user is logged in.
 function isLoggedIn(req, res, next) {
-    if (req.isAuthenticated())
-        return next();
- 
-    res.sendStatus(401);
+  if (req.isAuthenticated()) return next();
+  //res.sendStatus(401);
+  res.redirect("/login");
+  console.log("Unauthorized access !");
 }
 
 // Main page.
-app.get("/", function (req, res) {
-  res.render('./html/index.html');
+app.get("/", isLoggedIn, function (req, res) {
+  res.sendFile(__dirname + "/html/index.html");
+  console.log("main page");
 });
- 
-// api endpoints for login, content and logout
+
+// Login page.
 app.get("/login", function (req, res) {
-    res.send("<p>Please login!</p><form method='post' action='/login'><input type='text' name='username'/><input type='password' name='password'/><button type='submit' value='submit'>Submit</buttom></form>");
+  if(req.isAuthenticated()) {
+    res.redirect("/");
+    console.log("already authenticated");
+  }
+  else {
+    res.sendFile(__dirname + "/html/login.html");
+  }
+  console.log("login page");
 });
-app.post("/login", 
-    passport.authenticate("local-login", { failureRedirect: "/login"}),
-    function (req, res) {
-        res.redirect("/content");
-});
-app.get("/content", isLoggedIn, function (req, res) {
-    res.send("Congratulations! you've successfully logged in.");
-});
+app.post("/login", passport.authenticate("local-login", { failureRedirect: "/login"}),
+         function (req, res) {
+         res.redirect("/");
+         });
+
+// Logout page.
 app.get("/logout", function (req, res) {
-    req.logout();
-    res.send("logout success!");
+        req.logout();
+        res.redirect("/login");
+        console.log("logout success!");
+        });
+
+// The 404 page (Alway keep this as the last route).
+app.get("*", function(req, res){
+  res.status(404).sendFile(__dirname + "/html/404.html");
 });
- 
-// launch the app
-app.listen(3030);
+
+// Launch the app.
+const httpserver = app.listen(3030);
+
+// Load socket.io.
+var io = require('socket.io')(httpserver);
+
+// Log new client.
+io.sockets.on("connection", function (socket) {
+              console.log("client connected !");
+              socket.on("disconnect", () => {
+                        console.log("user disconnected");
+                        });
+              });
+
 console.log("App running at localhost:3030");
