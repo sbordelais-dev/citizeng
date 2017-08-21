@@ -1,1 +1,20 @@
-yo
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>index</title>
+    <style type="text/css">
+    </style>
+  </head>
+  <body>
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+      var socket = io.connect();
+      socket.on('connect', function(data) {
+        socket.emit('clientmessage', '::io:: Bonjour !!');
+      });
+    </script>
+    <p>Hey !</p>
+    <br/><br/><a href="/logout">logout</a>
+  </body>
+</html>
