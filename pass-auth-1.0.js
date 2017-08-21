@@ -11,8 +11,8 @@ var count = 0;
 //app.use(express.static(__dirname + "/html"));
 
 // Hardcoded users, ideally the users should be stored in a database.
-var users = [ {"id":1, "username":"root"  , "password":"root"}
-            , {"id":2, "username":"admin" , "password":"admin"}];
+var users = [ {"id":1, "username":"root"  , "password":"root"   , "super":true}
+            , {"id":5, "username":"admin" , "password":"admin"  , "super":false}];
  
 // Serialize users.
 passport.serializeUser(function (user, done) {
@@ -63,8 +63,13 @@ function isLoggedIn(req, res, next) {
 
 // Main page.
 app.get("/", isLoggedIn, function (req, res) {
-  res.sendFile(__dirname + "/html/index.html");
-  console.log("main page");
+  if(req.user.super) {
+    res.sendFile(__dirname + "/html/indexsuper.html");
+  }
+  else {
+    res.sendFile(__dirname + "/html/index.html");
+  }
+  console.log("main page (" + req.user.username + ", " + req.user.super + ")");
 });
 
 // Login page.
