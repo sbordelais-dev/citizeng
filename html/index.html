@@ -5,19 +5,34 @@
     <title>index</title>
     <style type="text/css">
     </style>
+    <script type="text/javascript">
+      function onPing() {
+        socket.emit("clientmessage", "::io client:: onPing() !!");
+      }
+      function onCount(c) {
+        document.getElementById("idcount").innerHTML = c;
+      }
+      function onCountOtherClient(c) {
+        document.getElementById("idcountotherclient").innerHTML = "(" + c + ")";
+      }
+    </script>
   </head>
   <body>
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
       var socket = io.connect();
-      socket.on('connect', function(data) {
-        socket.emit('clientmessage', '::io:: Bonjour !!');
+      socket.on("connect", function(data) {
+        socket.emit("clientmessage", "::io client:: Bonjour !!");
       });
-      function onTest() {
-      }
+      socket.on("servercount", function(data) {
+        onCount(data);
+      });
+      socket.on("servercountallother", function(data) {
+        onCountOtherClient(data);
+      });
     </script>
     <p>Hey !</p>
-    <p><a href="#" onclick="onTest();">test</a></p>
+    <p><a href="#" onclick="onPing();">ping</a>&nbsp;&nbsp;<span id="idcount"></span>&nbsp;&nbsp;<span id="idcountotherclient"></span></p>
     <br/><br/><a href="/logout">logout</a>
   </body>
 </html>
