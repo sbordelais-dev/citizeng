@@ -21,7 +21,6 @@
       socket.on("connect", function(data) {
         socket.emit("clientmessage", "::io client:: Bonjour !!");
       });
-
       socket.on("otherclientmessage", function(data) {
         onOtherClientMessage(data);
       });
