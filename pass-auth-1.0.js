@@ -4,31 +4,41 @@ var express         = require('express'),
     LocalStrategy   = require('passport-local').Strategy,
     bodyParser      = require('body-parser'),
     session         = require('express-session');
-var port = 3030;
+var port  = 3030;
+var count = 0;
 
 // Configure app.
 //app.use(express.static(__dirname + "/html"));
 
-// hardcoded users, ideally the users should be stored in a database
-var users = [{"id":1, "username":"root", "password":"root"}];
+// Hardcoded users, ideally the users should be stored in a database.
+var users = [ {"id":1, "username":"root"  , "password":"root"}
+            , {"id":2, "username":"admin" , "password":"admin"}];
  
-// passport needs ability to serialize and unserialize users out of session
+// Serialize users.
 passport.serializeUser(function (user, done) {
-    done(null, users[0].id);
+    done(null, user.id);
 });
+
+// Deserialize users.
 passport.deserializeUser(function (id, done) {
-    done(null, users[0]);
+  // Walk users array.
+  for (u in users) {
+    if (users[u].id == id) done(null, users[u]);
+  }
 });
  
-// passport local strategy for local-login, local refers to this app
+// Passport local strategy for local-login, local refers to this app.
 passport.use('local-login', new LocalStrategy(
-    function (username, password, done) {
-        if (username === users[0].username && password === users[0].password) {
-            return done(null, users[0]);
-        } else {
-            return done(null, false, {"message": "User not found."});
-        }
-    })
+  function (username, password, done) {
+    // Walk users array.
+    for (u in users) {
+      if ((username === users[u].username) && (password === users[u].password)) {
+        return done(null, users[u]);
+      }
+    }
+    // User not found.
+    return done(null, false, {"message": "User not found."});
+  })
 );
  
 // Retrieving form data.
@@ -61,27 +71,27 @@ app.get("/", isLoggedIn, function (req, res) {
 // Login page.
 app.get("/login", function (req, res) {
   if(req.isAuthenticated()) {
-    res.redirect("/");
     console.log("already authenticated");
+    res.redirect("/");
   }
   else {
+    console.log("login page");
     res.sendFile(__dirname + "/html/login.html");
   }
-  console.log("login page");
 });
 
 // Login post.
 app.post("/login", passport.authenticate("local-login", { failureRedirect: "/login"}),
-         function (req, res) {
-         res.redirect("/");
-         });
+  function (req, res) {
+  res.redirect("/");
+});
 
 // Logout page.
 app.get("/logout", function (req, res) {
-        req.logout();
-        res.redirect("/login");
-        console.log("logout success!");
-        });
+  req.logout();
+  console.log("logout success!");
+  res.redirect("/login");
+  });
 
 // The 404 page (Alway keep this as the last route).
 app.get("*", function(req, res){
@@ -98,15 +108,26 @@ var io = require('socket.io')(httpserver);
 io.sockets.on("connection", function (socket) {
   console.log("client connected !");
 
-  // Join message.
+  // Simple message.
   socket.on("clientmessage", function(data) {
     console.log(data);
+
+    // Update count.
+    count++;
+    
+    // Send message.
+    socket.emit("servercount", count);
+    socket.broadcast.emit("servercountallother", count);
   });
 
   // Disconnect message.
   socket.on("disconnect", () => {
     console.log("user disconnected");
+
+    // Reset count.
+    count = 0;
   });
 });
+
 
 console.log("App running at localhost:" + port);
