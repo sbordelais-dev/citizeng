@@ -4,6 +4,7 @@ var express         = require('express'),
     LocalStrategy   = require('passport-local').Strategy,
     bodyParser      = require('body-parser'),
     session         = require('express-session');
+var port = 3030;
 
 // Configure app.
 //app.use(express.static(__dirname + "/html"));
@@ -36,9 +37,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
  
 // Initialize passposrt and and session for persistent login sessions.
 app.use(session({
-    secret: "chainesecrete",
-    resave: true,
-    saveUninitialized: true }));
+  secret: "chainesecrete",
+  resave: true,
+  saveUninitialized: true
+}));
 app.use(passport.initialize());
 app.use(passport.session());
  
@@ -67,6 +69,8 @@ app.get("/login", function (req, res) {
   }
   console.log("login page");
 });
+
+// Login post.
 app.post("/login", passport.authenticate("local-login", { failureRedirect: "/login"}),
          function (req, res) {
          res.redirect("/");
@@ -85,17 +89,24 @@ app.get("*", function(req, res){
 });
 
 // Launch the app.
-const httpserver = app.listen(3030);
+const httpserver = app.listen(port);
 
 // Load socket.io.
 var io = require('socket.io')(httpserver);
 
 // Log new client.
 io.sockets.on("connection", function (socket) {
-              console.log("client connected !");
-              socket.on("disconnect", () => {
-                        console.log("user disconnected");
-                        });
-              });
+  console.log("client connected !");
 
-console.log("App running at localhost:3030");
+  // Join message.
+  socket.on("clientmessage", function(data) {
+    console.log(data);
+  });
+
+  // Disconnect message.
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
+  });
+});
+
+console.log("App running at localhost:" + port);
