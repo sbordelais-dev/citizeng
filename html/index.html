@@ -9,11 +9,8 @@
       function onPing() {
         socket.emit("clientmessage", "::io client:: onPing() !!");
       }
-      function onCount(c) {
-        document.getElementById("idcount").innerHTML = c;
-      }
       function onCountOtherClient(c) {
-        document.getElementById("idcountotherclient").innerHTML = "(" + c + ")";
+        document.getElementById("otherclientmessage").innerHTML = "(" + c + ")";
       }
     </script>
   </head>
@@ -24,18 +21,13 @@
       socket.on("connect", function(data) {
         socket.emit("clientmessage", "::io client:: Bonjour !!");
       });
-      socket.on("servercount", function(data) {
-        onCount(data);
+
+      socket.on("otherclientmessage", function(data) {
+        onOtherClientMessage(data);
       });
-      socket.on("servercountallother", function(data) {
-        onCountOtherClient(data);
-      });
-      socket.on("username", function(data) {
-                alert(data);
-                });
-    </script>
+      </script>
     <p>Hey !</p>
-    <p><a href="#" onclick="onPing();">ping</a>&nbsp;&nbsp;<span id="idcount"></span>&nbsp;&nbsp;<span id="idcountotherclient"></span></p>
+    <p><a href="#" onclick="onPing();">ping</a>&nbsp;&nbsp;<span id="otherclientmessage"></span></p>
     <br/><br/><a href="/logout">logout</a>
   </body>
 </html>

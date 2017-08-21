@@ -3,9 +3,9 @@ var express         = require('express'),
     passport        = require('passport'),
     LocalStrategy   = require('passport-local').Strategy,
     bodyParser      = require('body-parser'),
-    session         = require('express-session');
+    session         = require('express-session'),
+    cookie          = require('cookie');
 var port  = 3030;
-var count = 0;
 
 // Configure app.
 //app.use(express.static(__dirname + "/html"));
@@ -63,6 +63,7 @@ function isLoggedIn(req, res, next) {
 
 // Main page.
 app.get("/", isLoggedIn, function (req, res) {
+  res.setHeader("Set-Cookie", cookie.serialize("username", req.user.username, {httpOnly: true}));
   if(req.user.super) {
     res.sendFile(__dirname + "/html/indexsuper.html");
   }
@@ -75,7 +76,7 @@ app.get("/", isLoggedIn, function (req, res) {
 // Login page.
 app.get("/login", function (req, res) {
   if(req.isAuthenticated()) {
-    console.log("already authenticated");
+    console.log("already authenticated (" + req.user.username + ", " + req.user.super + ")");
     res.redirect("/");
   }
   else {
@@ -113,21 +114,15 @@ io.sockets.on("connection", function (socket) {
   // Simple message.
   socket.on("clientmessage", function(data) {
     console.log(data);
-
-    // Update count.
-    count++;
     
-    // Send message.
-    socket.emit("servercount", count);
-    socket.broadcast.emit("servercountallother", count);
+    // dispatch message to all other client.
+    socket.broadcast.emit("otherclientmessage", data);
   });
 
   // Disconnect message.
   socket.on("disconnect", () => {
-    console.log("user disconnected");
+    console.log("client disconnected");
 
-    // Reset count.
-    count = 0;
   });
 });
 
