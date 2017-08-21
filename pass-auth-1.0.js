@@ -33,17 +33,17 @@ passport.use('local-login', new LocalStrategy(
     // Walk users array.
     for (u in users) {
       if ((username === users[u].username) && (password === users[u].password)) {
-        return done(null, users[u]);
+        return done(null, users[u], {message: "Yes!"});
       }
     }
     // User not found.
-    return done(null, false, {"message": "User not found."});
+    return done(null, false, {message: "User not found."});
   })
 );
  
 // Retrieving form data.
 app.use(bodyParser.json()); 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
  
 // Initialize passposrt and and session for persistent login sessions.
 app.use(session({
@@ -57,7 +57,6 @@ app.use(passport.session());
 // Route middleware to ensure user is logged in.
 function isLoggedIn(req, res, next) {
   if (req.isAuthenticated()) return next();
-  //res.sendStatus(401);
   res.redirect("/login");
   console.log("Unauthorized access !");
 }
@@ -75,16 +74,14 @@ app.get("/login", function (req, res) {
     res.redirect("/");
   }
   else {
+    req.session.messages = "You need to login to view this page";
     console.log("login page");
     res.sendFile(__dirname + "/html/login.html");
   }
 });
 
 // Login post.
-app.post("/login", passport.authenticate("local-login", { failureRedirect: "/login"}),
-  function (req, res) {
-  res.redirect("/");
-});
+app.post("/login", passport.authenticate("local-login", { successRedirect: "/", failureRedirect: "/login"/*, failureFlash: true*/}));
 
 // Logout page.
 app.get("/logout", function (req, res) {

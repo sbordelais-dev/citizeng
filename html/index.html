@@ -30,6 +30,9 @@
       socket.on("servercountallother", function(data) {
         onCountOtherClient(data);
       });
+      socket.on("username", function(data) {
+                alert(data);
+                });
     </script>
     <p>Hey !</p>
     <p><a href="#" onclick="onPing();">ping</a>&nbsp;&nbsp;<span id="idcount"></span>&nbsp;&nbsp;<span id="idcountotherclient"></span></p>
