@@ -22,7 +22,7 @@
         if (0<ithis.value.length) {
           idbuttonlogin.disabled = true;
           socket.emit("clientusername", ithis.value, function(data) {
-            if("yes" === data) {
+            if (0<data.length) {
               idbuttonlogin.disabled = false;
               idspanloginmess.innerHTML = "";
             }
@@ -44,9 +44,6 @@
       var idbuttonlogin = null;
       var idspanloginmess = null;
       var socket = io.connect();
-      socket.on("connect", function(data) {
-        socket.emit("clientmessage", "::io client:: Bonjour !!");
-      });
     </script>
     <p>Please login!</p><div><form method='post' action='/login'><input type='text' name='username' onfocusout="validateUser(this);"/><input type='password' name='password'/><button id="idbuttonlogin" type="submit" value="submit">Connect</buttom></form></div><p><span id="idspanloginmess"></span></p>
   </body>

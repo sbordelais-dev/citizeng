@@ -7,10 +7,7 @@
     </style>
     <script type="text/javascript">
       function onPing() {
-        socket.emit("clientmessage", "::io client:: onPing() !!");
-      }
-      function onCountOtherClient(c) {
-        document.getElementById("otherclientmessage").innerHTML = "(" + c + ")";
+        socket.emit("consolemessage", "::io client:: onPing() !!");
       }
     </script>
   </head>
@@ -19,14 +16,10 @@
     <script type="text/javascript">
       var socket = io.connect();
       socket.on("connect", function(data) {
-        socket.emit("clientmessage", "::io client:: Bonjour !!");
-      });
-      socket.on("otherclientmessage", function(data) {
-        onOtherClientMessage(data);
+        socket.emit("consolemessage", "::io client:: Bonjour !!");
       });
       </script>
     <p>Hey !</p>
-    <p><a href="#" onclick="onPing();">ping</a></p>
-    <br/><br/><a href="/logout">logout</a>
+    <p><a href="#" onclick="onPing();">ping</a></p><a href="/logout">logout</a>
   </body>
 </html>

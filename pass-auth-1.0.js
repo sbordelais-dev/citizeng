@@ -3,8 +3,7 @@ var express         = require('express'),
     passport        = require('passport'),
     LocalStrategy   = require('passport-local').Strategy,
     bodyParser      = require('body-parser'),
-    session         = require('express-session'),
-    cookie          = require('cookie');
+    session         = require('express-session');
 var port  = 3030;
 
 // Configure app.
@@ -12,7 +11,8 @@ var port  = 3030;
 
 // Hardcoded users, ideally the users should be stored in a database.
 var users = [ {"id":1, "username":"root"  , "password":"root"   , "super":true}
-            , {"id":5, "username":"admin" , "password":"admin"  , "super":false}];
+            , {"id":5, "username":"admin" , "password":"admin"  , "super":true}
+            , {"id":3, "username":"user"  , "password":"user"   , "super":false}];
  
 // Serialize users.
 passport.serializeUser(function (user, done) {
@@ -105,12 +105,22 @@ const httpserver = app.listen(port);
 // Load socket.io.
 var io = require('socket.io')(httpserver);
 
+// Connected users count.
+var connectedusers = 0;
+
 // Log new client.
 io.sockets.on("connection", function (socket) {
-  console.log("client connected !");
+  connectedusers++;
+  console.log("client connected ! (" + connectedusers + ")");
 
+  // Disconnect message.
+  socket.on("disconnect", () => {
+    --connectedusers;
+    console.log("client disconnected");
+  });
+              
   // Simple message.
-  socket.on("clientmessage", function(data) {
+  socket.on("consolemessage", function(data) {
     console.log(data);
   });
 
@@ -121,12 +131,21 @@ io.sockets.on("connection", function (socket) {
     for (u in users) {
       if (users[u].username == data) { isPresent = true; break; }
     }
-    ackfn((isPresent)? "yes" : "no");
+    ackfn((isPresent)? data : "");
   });
 
-  // Disconnect message.
-  socket.on("disconnect", () => {
-    console.log("client disconnected");
+  // Users list.
+  socket.on("userslist", function(data, ackfn) {
+    var JSONlist = "{\"count\":" + users.length + ",\"array\":[";
+    var first = false;
+    // Walk users array.
+    for (u in users) {
+      if (first) JSONlist += ", ";
+      JSONlist += "{\"username\":\"" + users[u].username + "\"}";
+      if (!first) first=true;
+    }
+    JSONlist += "]}";
+    ackfn(JSONlist);
   });
 });
 

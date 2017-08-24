@@ -7,12 +7,14 @@
     </style>
     <script type="text/javascript">
       function init() {
-      }
-      function onPing() {
-        socket.emit("clientmessage", "::io client:: onPing() !!");
-      }
-      function onOtherClientMessage(c) {
-        document.getElementById("otherclientmessage").innerHTML = c;
+        socket.emit("userslist", "", function(data) {
+          var users = "";
+          var json = JSON.parse(data);
+          for (u in json.array) {
+           users += json.array[u].username + "<br/>";
+          }
+          document.getElementById("iduserslist").innerHTML = users + "(" + json.count + ")";
+        });
       }
     </script>
   </head>
@@ -21,14 +23,10 @@
     <script type="text/javascript">
       var socket = io.connect();
       socket.on("connect", function(data) {
-        socket.emit("clientmessage", "::io client:: Bonjour super user !!");
-      });
-      socket.on("otherclientmessage", function(data) {
-        onOtherClientMessage(data);
+        socket.emit("consolemessage", "::io client:: Bonjour super user !!");
       });
     </script>
     <p>Hey (superuser) !</p>
-    <p><a href="#" onclick="onPing();">ping</a></p>
-    <br/><br/><a href="/logout">logout</a>
+    <p><span id="iduserslist"></span></p><a href="/logout">logout</a>
   </body>
 </html>
