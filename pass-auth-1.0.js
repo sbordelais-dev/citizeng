@@ -63,7 +63,6 @@ function isLoggedIn(req, res, next) {
 
 // Main page.
 app.get("/", isLoggedIn, function (req, res) {
-  res.setHeader("Set-Cookie", cookie.serialize("username", req.user.username, {httpOnly: true}));
   if(req.user.super) {
     res.sendFile(__dirname + "/html/indexsuper.html");
   }
@@ -80,8 +79,7 @@ app.get("/login", function (req, res) {
     res.redirect("/");
   }
   else {
-    req.session.messages = "You need to login to view this page";
-    console.log("login page");
+    console.log("You need to login to view this page");
     res.sendFile(__dirname + "/html/login.html");
   }
 });
@@ -114,15 +112,21 @@ io.sockets.on("connection", function (socket) {
   // Simple message.
   socket.on("clientmessage", function(data) {
     console.log(data);
-    
-    // dispatch message to all other client.
-    socket.broadcast.emit("otherclientmessage", data);
+  });
+
+  // Check user name.
+  socket.on("clientusername", function(data, ackfn) {
+    var isPresent = false;
+    // Walk users array.
+    for (u in users) {
+      if (users[u].username == data) { isPresent = true; break; }
+    }
+    ackfn((isPresent)? "yes" : "no");
   });
 
   // Disconnect message.
   socket.on("disconnect", () => {
     console.log("client disconnected");
-
   });
 });
 

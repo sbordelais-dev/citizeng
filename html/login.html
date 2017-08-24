@@ -6,12 +6,48 @@
     <style type="text/css">
     </style>
     <script type="text/javascript">
+      function init() {
+        if (null == idbuttonlogin) {
+          if (null != (idbuttonlogin = document.getElementById("idbuttonlogin"))) {
+            idbuttonlogin.disabled = true;
+          }
+        }
+        if (null == idspanloginmess) {
+          if (null != (idspanloginmess = document.getElementById("idspanloginmess"))) {
+            idspanloginmess.innerHTML = "";
+          }
+        }
+      }
+      function validateUser(ithis) {
+        if (0<ithis.value.length) {
+          idbuttonlogin.disabled = true;
+          socket.emit("clientusername", ithis.value, function(data) {
+            if("yes" === data) {
+              idbuttonlogin.disabled = false;
+              idspanloginmess.innerHTML = "";
+            }
+            else {
+              idbuttonlogin.disabled = true;
+              idspanloginmess.innerHTML = "!! Unknown user name '" + ithis.value + "' !!"
+            }
+          });
+        }
+        else {
+          idbuttonlogin.disabled = true;
+        }
+      }
     </script>
   </head>
-  <body>
+  <body onload="init();">
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
+      var idbuttonlogin = null;
+      var idspanloginmess = null;
+      var socket = io.connect();
+      socket.on("connect", function(data) {
+        socket.emit("clientmessage", "::io client:: Bonjour !!");
+      });
     </script>
-    <p>Please login!</p><form method='post' action='/login'><input type='text' name='username'/><input type='password' name='password'/><button type='submit' value='submit'>Submit</buttom></form><br/><span id="loginmess"></span>
+    <p>Please login!</p><div><form method='post' action='/login'><input type='text' name='username' onfocusout="validateUser(this);"/><input type='password' name='password'/><button id="idbuttonlogin" type="submit" value="submit">Connect</buttom></form></div><p><span id="idspanloginmess"></span></p>
   </body>
 </html>
