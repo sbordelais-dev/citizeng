@@ -95,7 +95,7 @@ app.get("/logout", function (req, res) {
   });
 
 // The 404 page (Alway keep this as the last route).
-app.get("*", function(req, res){
+app.get("*", isLoggedIn, function(req, res){
   res.status(404).sendFile(__dirname + "/html/404.html");
 });
 
