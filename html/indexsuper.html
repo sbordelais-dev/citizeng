@@ -7,26 +7,96 @@
     </style>
     <script type="text/javascript">
       function init() {
+        buttonadd = document.getElementById("idbuttonadd");
+        buttonremove = document.getElementById("idbuttonremove");
         socket.emit("userslist", "", function(data) {
-          var users = "";
-          var json = JSON.parse(data);
+          var l_divuserlist = document.getElementById("iddivuserlist");
+          if (null == l_divuserlist) return ;
+          json = JSON.parse(data);
+          var disabled = "";
+          var divusers = "";
+          divusers += "<table style=\"border:1px solid black\">";
+          divusers += "<tr><th><input id=\"idcheckboxall\" type=\"checkbox\" name=\"allusers\" value=\"allusers\" onclick=\"onToggleUsers(this);\"></th><th>User Name</th><th>Super User</th></tr>";
           for (u in json.array) {
-           users += json.array[u].username + "<br/>";
+            divusers += "<tr>";
+            if (root === json.array[u].username) disabled = "disabled"; else disabled = "";
+            divusers += "<td><input id=\"idselect_" + u + "\" type=\"checkbox\" name=\"user\" value=\"" + u + "\" onclick=\"onSelectUser(this);\"" + disabled + ">";
+            divusers += "<td id=\"idusername_" + u + "\">" + json.array[u].username + "</td>";
+            divusers += "<td id=\"idusersuper_" + u + "\">" + json.array[u].super + "</td>";
+            divusers += "</tr>";
           }
-          document.getElementById("iduserslist").innerHTML = users + "(" + json.count + ")";
+          divusers += "</table>";
+          l_divuserlist.innerHTML = divusers;
+          if (null!=buttonremove) buttonremove.disabled = true;
+          checkboxall = document.getElementById("idcheckboxall");
         });
+      }
+      function onSelectUser(ithis) {
+        if (null==buttonremove) return ;
+        var elem = null;
+        var checked = 0;
+        for (u in json.array) {
+          if (null != (elem = document.getElementById("idselect_" + u)) ) {
+          if (elem.checked) checked++;
+          }
+        }
+        if (0==checked) buttonremove.disabled = true;
+        else buttonremove.disabled = false;
+      }
+      function onToggleUsers(ithis) {
+        var elem = null;
+        var checked = 0;
+        for (u in json.array) {
+          if (root !== json.array[u].username) {
+            if (null != (elem = document.getElementById("idselect_" + u)) ) {
+              if (elem.checked = ithis.checked) checked++;
+            }
+          }
+        }
+        if (null==buttonremove) return ;
+        if (0==checked) buttonremove.disabled = true;
+        else buttonremove.disabled = false;
+      }
+      function onRemoveUser() {
+        var elem = null;
+        for (u in json.array) {
+          if (null != (elem = document.getElementById("idselect_" + u)) ) {
+            if (elem.checked) {
+              elem.checked = false;
+            }
+          }
+        }
+        checkboxall.checked = false;
+        buttonremove.disabled = true;
+      }
+      function onAddUser() {
+        var elem = null;
+        for (u in json.array) {
+          if (null != (elem = document.getElementById("idselect_" + u)) ) {
+            if (elem.checked) {
+              elem.checked = false;
+            }
+          }
+        }
+        checkboxall.checked = false;
+        buttonremove.disabled = true;
       }
     </script>
   </head>
   <body onload="init();">
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
+      var json = null;
+      var root = "root";
+      var buttonadd = null;
+      var buttonremove = null;
+      var checkboxall = null;
       var socket = io.connect();
       socket.on("connect", function(data) {
         socket.emit("consolemessage", "::io client:: Bonjour super user !!");
       });
     </script>
     <p>Hey (superuser) !</p>
-    <p><span id="iduserslist"></span></p><a href="/logout">logout</a>
+     <button id="idbuttonadd" type="button" onclick="onAddUser();">Add</button><button id="idbuttonremove" type="button" onclick="onRemoveUser();">Remove</button><br/><div id="iddivuserlist"></div><br/><a href="/logout">logout</a>
   </body>
 </html>

@@ -141,7 +141,7 @@ io.sockets.on("connection", function (socket) {
     // Walk users array.
     for (u in users) {
       if (first) JSONlist += ", ";
-      JSONlist += "{\"username\":\"" + users[u].username + "\"}";
+      JSONlist += "{\"username\":\"" + users[u].username + "\", \"super\":" + users[u].super + "}";
       if (!first) first=true;
     }
     JSONlist += "]}";
