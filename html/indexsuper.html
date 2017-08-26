@@ -7,8 +7,15 @@
     </style>
     <script type="text/javascript">
       function init() {
+        divadd = document.getElementById("iddivadduser");
+        if (null!=divadd) divadd.style.display = "none";
         buttonadd = document.getElementById("idbuttonadd");
         buttonremove = document.getElementById("idbuttonremove");
+        buttonaddconfirm = document.getElementById("idbuttonaddconfirm");
+        spanaddmess = document.getElementById("idspanaddmess");
+        inputusername = document.getElementById("idinputusername");
+        password = document.getElementById("idpassword");
+        passwordconfirm = document.getElementById("idpasswordconfirm");
         socket.emit("userslist", "", function(data) {
           var l_divuserlist = document.getElementById("iddivuserlist");
           if (null == l_divuserlist) return ;
@@ -32,6 +39,7 @@
         });
       }
       function onSelectUser(ithis) {
+        divadd.style.display = "none";
         if (null==buttonremove) return ;
         var elem = null;
         var checked = 0;
@@ -44,6 +52,7 @@
         else buttonremove.disabled = false;
       }
       function onToggleUsers(ithis) {
+        divadd.style.display = "none";
         var elem = null;
         var checked = 0;
         for (u in json.array) {
@@ -63,6 +72,7 @@
           if (null != (elem = document.getElementById("idselect_" + u)) ) {
             if (elem.checked) {
               elem.checked = false;
+              alert("Need to remove:" + elem.value);
             }
           }
         }
@@ -80,7 +90,67 @@
         }
         checkboxall.checked = false;
         buttonremove.disabled = true;
+        onDivToggle();
+        if (divadd.style.display === "block") {
+          password.value = "";
+          passwordconfirm.value = "";
+          inputusername.value = "";
+        }
       }
+      function onDivToggle() {
+        if (null==divadd) return ;
+        if (divadd.style.display === "none") {
+         divadd.style.display = "block";
+        } else {
+         divadd.style.display = "none";
+        }
+      }
+      function validateUser(ithis) {
+        if (0<ithis.value.length) {
+          buttonaddconfirm.disabled = true;
+          var found = false;
+          var elem = null;
+          for (u in json.array) {
+            if (null != (elem = document.getElementById("idusername_" + u)) ) {
+              if (elem.innerHTML===ithis.value) found = true;
+            }
+          }
+          if (found) {
+            buttonaddconfirm.disabled = true;
+            if (null!=spanaddmess) spanaddmess.innerHTML = "!! Existing user name '" + ithis.value + "' !!";
+          }
+          else {
+            buttonaddconfirm.disabled = false;
+            if (null!=spanaddmess) spanaddmess.innerHTML = "";
+          }
+        }
+        else {
+          buttonaddconfirm.disabled = true;
+        }
+      }
+      function onAddUserConfirm() {
+        if (null == password) return ;
+        if (null == passwordconfirm) return ;
+        if (password.value !== passwordconfirm.value) {
+          spanaddmess.innerHTML = "!! Password does not match !!";
+          buttonaddconfirm.disabled = true;
+        }
+        else {
+          onDivToggle();
+          alert("Need to add :" + inputusername.value + "=" + password.value);
+          spanaddmess.innerHTML = "";
+          password.value = "";
+          passwordconfirm.value = "";
+          inputusername.value = "";
+          buttonaddconfirm.disabled = false;
+        }
+      }
+    function onPasswordChange() {
+      buttonaddconfirm.disabled = false;
+    }
+    function onPasswordConfirmChange() {
+      buttonaddconfirm.disabled = false;
+    }
     </script>
   </head>
   <body onload="init();">
@@ -90,13 +160,17 @@
       var root = "root";
       var buttonadd = null;
       var buttonremove = null;
+      var divadd = null;
       var checkboxall = null;
+      var buttonaddconfirm = null;
+      var spanaddmess = null;
+      var inputusername = null;
       var socket = io.connect();
       socket.on("connect", function(data) {
         socket.emit("consolemessage", "::io client:: Bonjour super user !!");
       });
     </script>
     <p>Hey (superuser) !</p>
-     <button id="idbuttonadd" type="button" onclick="onAddUser();">Add</button><button id="idbuttonremove" type="button" onclick="onRemoveUser();">Remove</button><br/><div id="iddivuserlist"></div><br/><a href="/logout">logout</a>
+    <button id="idbuttonadd" type="button" onclick="onAddUser();">Add</button><button id="idbuttonremove" type="button" onclick="onRemoveUser();">Remove</button><div id="iddivadduser"><br/><input id="idinputusername" type='text' name='username' onfocusout="validateUser(this);"/>&nbsp;<input type='password' name='password' id="idpassword" onchange="onPasswordChange();"/>&nbsp;<input type='password' name='passwordconfirm' id="idpasswordconfirm" onchange="onPasswordConfirmChange();"/>&nbsp;<button id="idbuttonaddconfirm" type="button" onclick="onAddUserConfirm();">Add New User</button><br/><span id="idspanaddmess"></span></div><br/><div id="iddivuserlist"></div><br/><a href="/logout">logout</a>
   </body>
 </html>
