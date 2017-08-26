@@ -48,8 +48,14 @@
           if (elem.checked) checked++;
           }
         }
-        if (0==checked) buttonremove.disabled = true;
-        else buttonremove.disabled = false;
+        if (0==checked) {
+          buttonadd.disabled = false;
+          buttonremove.disabled = true;
+        }
+        else {
+          buttonadd.disabled = true;
+          buttonremove.disabled = false;
+        }
       }
       function onToggleUsers(ithis) {
         divadd.style.display = "none";
@@ -63,8 +69,14 @@
           }
         }
         if (null==buttonremove) return ;
-        if (0==checked) buttonremove.disabled = true;
-        else buttonremove.disabled = false;
+        if (0==checked) {
+          buttonadd.disabled = false;
+          buttonremove.disabled = true;
+        }
+        else {
+          buttonadd.disabled = true;
+          buttonremove.disabled = false;
+        }
       }
       function onRemoveUser() {
         var elem = null;
@@ -171,6 +183,6 @@
       });
     </script>
     <p>Hey (superuser) !</p>
-    <button id="idbuttonadd" type="button" onclick="onAddUser();">Add</button><button id="idbuttonremove" type="button" onclick="onRemoveUser();">Remove</button><div id="iddivadduser"><br/><input id="idinputusername" type='text' name='username' onfocusout="validateUser(this);"/>&nbsp;<input type='password' name='password' id="idpassword" onchange="onPasswordChange();"/>&nbsp;<input type='password' name='passwordconfirm' id="idpasswordconfirm" onchange="onPasswordConfirmChange();"/>&nbsp;<button id="idbuttonaddconfirm" type="button" onclick="onAddUserConfirm();">Add New User</button><br/><span id="idspanaddmess"></span></div><br/><div id="iddivuserlist"></div><br/><a href="/logout">logout</a>
+    <button id="idbuttonadd" type="button" onclick="onAddUser();">Add</button><button id="idbuttonremove" type="button" onclick="onRemoveUser();">Remove</button><div id="iddivadduser"><br/><input id="idinputusername" type='text' name='username' onblur="validateUser(this);"/>&nbsp;<input type='password' name='password' id="idpassword" onchange="onPasswordChange();"/>&nbsp;<input type='password' name='passwordconfirm' id="idpasswordconfirm" onchange="onPasswordConfirmChange();"/>&nbsp;<button id="idbuttonaddconfirm" type="button" onclick="onAddUserConfirm();">Add New User</button><br/><span id="idspanaddmess"></span></div><br/><div id="iddivuserlist"></div><br/><a href="/logout">logout</a>
   </body>
 </html>
