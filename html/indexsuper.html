@@ -34,13 +34,13 @@
           }
           divusers += "</table>";
           l_divuserlist.innerHTML = divusers;
-          if (null!=buttonremove) buttonremove.disabled = true;
+          buttonadd.disabled = false;
+          buttonremove.disabled = true;
           checkboxall = document.getElementById("idcheckboxall");
         });
       }
       function onSelectUser(ithis) {
         divadd.style.display = "none";
-        if (null==buttonremove) return ;
         var elem = null;
         var checked = 0;
         for (u in json.array) {
@@ -68,7 +68,6 @@
             }
           }
         }
-        if (null==buttonremove) return ;
         if (0==checked) {
           buttonadd.disabled = false;
           buttonremove.disabled = true;
@@ -89,6 +88,7 @@
           }
         }
         checkboxall.checked = false;
+        buttonadd.disabled = false;
         buttonremove.disabled = true;
       }
       function onAddUser() {
@@ -101,6 +101,7 @@
           }
         }
         checkboxall.checked = false;
+        buttonadd.disabled = false;
         buttonremove.disabled = true;
         onDivToggle();
         if (divadd.style.display === "block") {
