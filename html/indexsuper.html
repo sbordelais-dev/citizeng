@@ -7,108 +7,121 @@
     </style>
     <script type="text/javascript">
       function init() {
+        buttonadd = document.getElementById("idbuttonadd");
+        buttonadd.disabled = false;
+        buttonremove = document.getElementById("idbuttonremove");
+        buttonremove.disabled = true;
+        buttonaddconfirm = document.getElementById("idbuttonaddconfirm");
         divadd = document.getElementById("iddivadduser");
         if (null!=divadd) divadd.style.display = "none";
-        buttonadd = document.getElementById("idbuttonadd");
-        buttonremove = document.getElementById("idbuttonremove");
-        buttonaddconfirm = document.getElementById("idbuttonaddconfirm");
         spanaddmess = document.getElementById("idspanaddmess");
         inputusername = document.getElementById("idinputusername");
         password = document.getElementById("idpassword");
         passwordconfirm = document.getElementById("idpasswordconfirm");
-        socket.emit("userslist", "", function(data) {
-          var l_divuserlist = document.getElementById("iddivuserlist");
-          if (null == l_divuserlist) return ;
-          json = JSON.parse(data);
+        if (null!=(divuserlist = document.getElementById("iddivuserlist"))) divuserlist.innerHTML = "";
+        checkboxsuper = document.getElementById("idcheckboxsuper");
+      }
+      function refresh() {
+        socket.emit("userslist", "", function(rows) {
           var disabled = "";
           var divusers = "";
           divusers += "<table style=\"border:1px solid black\">";
           divusers += "<tr><th><input id=\"idcheckboxall\" type=\"checkbox\" name=\"allusers\" value=\"allusers\" onclick=\"onToggleUsers(this);\"></th><th>User Name</th><th>Super User</th></tr>";
-          for (u in json.array) {
+          for (u in rows) {
             divusers += "<tr>";
-            if (root === json.array[u].username) disabled = "disabled"; else disabled = "";
+            if (root === rows[u].username) disabled = "disabled"; else disabled = "";
             divusers += "<td><input id=\"idselect_" + u + "\" type=\"checkbox\" name=\"user\" value=\"" + u + "\" onclick=\"onSelectUser(this);\"" + disabled + ">";
-            divusers += "<td id=\"idusername_" + u + "\">" + json.array[u].username + "</td>";
-            divusers += "<td id=\"idusersuper_" + u + "\">" + json.array[u].super + "</td>";
+            divusers += "<td id=\"idusername_" + u + "\">" + rows[u].username + "</td>";
+            divusers += "<td id=\"idusersuper_" + u + "\">" + rows[u].super + "</td>";
             divusers += "</tr>";
           }
           divusers += "</table>";
-          l_divuserlist.innerHTML = divusers;
-          buttonadd.disabled = false;
-          buttonremove.disabled = true;
+          divuserlist.innerHTML = divusers;
           checkboxall = document.getElementById("idcheckboxall");
         });
       }
       function onSelectUser(ithis) {
         divadd.style.display = "none";
-        var elem = null;
-        var checked = 0;
-        for (u in json.array) {
-          if (null != (elem = document.getElementById("idselect_" + u)) ) {
-          if (elem.checked) checked++;
+        socket.emit("userslist", "", function(rows) {
+          var elem = null;
+          var checked = 0;
+          for (u in rows) {
+            if (null != (elem = document.getElementById("idselect_" + u)) ) {
+              if (elem.checked) checked++;
+            }
           }
-        }
-        if (0==checked) {
-          buttonadd.disabled = false;
-          buttonremove.disabled = true;
-        }
-        else {
-          buttonadd.disabled = true;
-          buttonremove.disabled = false;
-        }
+          if (0==checked) {
+            buttonadd.disabled = false;
+            buttonremove.disabled = true;
+          }
+          else {
+            buttonadd.disabled = true;
+            buttonremove.disabled = false;
+          }
+        });
       }
       function onToggleUsers(ithis) {
         divadd.style.display = "none";
-        var elem = null;
-        var checked = 0;
-        for (u in json.array) {
-          if (root !== json.array[u].username) {
-            if (null != (elem = document.getElementById("idselect_" + u)) ) {
-              if (elem.checked = ithis.checked) checked++;
+        socket.emit("userslist", "", function(rows) {
+          var elem = null;
+          var checked = 0;
+          for (u in rows) {
+            if (root !== rows[u].username) {
+              if (null != (elem = document.getElementById("idselect_" + u)) ) {
+                 if (elem.checked = ithis.checked) checked++;
+              }
             }
           }
-        }
-        if (0==checked) {
-          buttonadd.disabled = false;
-          buttonremove.disabled = true;
-        }
-        else {
-          buttonadd.disabled = true;
-          buttonremove.disabled = false;
-        }
+          if (0==checked) {
+            buttonadd.disabled = false;
+            buttonremove.disabled = true;
+          }
+          else {
+            buttonadd.disabled = true;
+            buttonremove.disabled = false;
+          }
+        });
       }
       function onRemoveUser() {
-        var elem = null;
-        for (u in json.array) {
-          if (null != (elem = document.getElementById("idselect_" + u)) ) {
-            if (elem.checked) {
-              elem.checked = false;
-              alert("Need to remove:" + elem.value);
+        socket.emit("userslist", "", function(rows) {
+          var elem = null;
+          for (u in rows) {
+            if (null != (elem = document.getElementById("idselect_" + u)) ) {
+              if (elem.checked) {
+                elem.checked = false;
+                if (null != (elem = document.getElementById("idusername_" + u)) ) {
+                  socket.emit("removeuser", elem.innerHTML, function(data){
+                    refresh();
+                  });
+                }
+              }
             }
           }
-        }
-        checkboxall.checked = false;
-        buttonadd.disabled = false;
-        buttonremove.disabled = true;
+          checkboxall.checked = false;
+          buttonadd.disabled = false;
+          buttonremove.disabled = true;
+        });
       }
       function onAddUser() {
-        var elem = null;
-        for (u in json.array) {
-          if (null != (elem = document.getElementById("idselect_" + u)) ) {
-            if (elem.checked) {
-              elem.checked = false;
+        socket.emit("userslist", "", function(rows) {
+          var elem = null;
+          for (u in rows) {
+            if (null != (elem = document.getElementById("idselect_" + u)) ) {
+              if (elem.checked) {
+                elem.checked = false;
+              }
             }
           }
-        }
-        checkboxall.checked = false;
-        buttonadd.disabled = false;
-        buttonremove.disabled = true;
-        onDivToggle();
-        if (divadd.style.display === "block") {
-          password.value = "";
-          passwordconfirm.value = "";
-          inputusername.value = "";
-        }
+          checkboxall.checked = false;
+          buttonadd.disabled = false;
+          buttonremove.disabled = true;
+          onDivToggle();
+          if (divadd.style.display === "block") {
+            password.value = "";
+            passwordconfirm.value = "";
+            inputusername.value = "";
+          }
+        });
       }
       function onDivToggle() {
         if (null==divadd) return ;
@@ -120,22 +133,24 @@
       }
       function validateUser(ithis) {
         if (0<ithis.value.length) {
-          buttonaddconfirm.disabled = true;
-          var found = false;
-          var elem = null;
-          for (u in json.array) {
-            if (null != (elem = document.getElementById("idusername_" + u)) ) {
-              if (elem.innerHTML===ithis.value) found = true;
-            }
-          }
-          if (found) {
+          socket.emit("userslist", "", function(rows) {
             buttonaddconfirm.disabled = true;
-            if (null!=spanaddmess) spanaddmess.innerHTML = "!! Existing user name '" + ithis.value + "' !!";
-          }
-          else {
-            buttonaddconfirm.disabled = false;
-            if (null!=spanaddmess) spanaddmess.innerHTML = "";
-          }
+            var elem = null;
+            var found = false;
+            for (u in rows) {
+              if (null != (elem = document.getElementById("idusername_" + u)) ) {
+                if (elem.innerHTML===ithis.value) found = true;
+              }
+            }
+            if (found) {
+              buttonaddconfirm.disabled = true;
+              if (null!=spanaddmess) spanaddmess.innerHTML = "!! Existing user name '" + ithis.value + "' !!";
+            }
+            else {
+              buttonaddconfirm.disabled = false;
+              if (null!=spanaddmess) spanaddmess.innerHTML = "";
+            }
+          });
         }
         else {
           buttonaddconfirm.disabled = true;
@@ -150,7 +165,10 @@
         }
         else {
           onDivToggle();
-          alert("Need to add :" + inputusername.value + "=" + password.value);
+          var newuser = {username:inputusername.value, password:password.value, super:(checkboxsuper.checked)};
+          socket.emit("adduser", newuser, function(data){
+            refresh();
+          });
           spanaddmess.innerHTML = "";
           password.value = "";
           passwordconfirm.value = "";
@@ -169,21 +187,25 @@
   <body onload="init();">
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
-      var json = null;
       var root = "root";
       var buttonadd = null;
       var buttonremove = null;
       var divadd = null;
       var checkboxall = null;
+      var checkboxsuper = null;
       var buttonaddconfirm = null;
       var spanaddmess = null;
       var inputusername = null;
+      var divuserlist = null;
+      var password = null;
+      var passwordconfirm = null;
       var socket = io.connect();
       socket.on("connect", function(data) {
         socket.emit("consolemessage", "::io client:: Bonjour super user !!");
+        refresh();
       });
     </script>
     <p>Hey (superuser) !</p>
-    <button id="idbuttonadd" type="button" onclick="onAddUser();">Add</button><button id="idbuttonremove" type="button" onclick="onRemoveUser();">Remove</button><div id="iddivadduser"><br/><input id="idinputusername" type='text' name='username' onblur="validateUser(this);"/>&nbsp;<input type='password' name='password' id="idpassword" onchange="onPasswordChange();"/>&nbsp;<input type='password' name='passwordconfirm' id="idpasswordconfirm" onchange="onPasswordConfirmChange();"/>&nbsp;<button id="idbuttonaddconfirm" type="button" onclick="onAddUserConfirm();">Add New User</button><br/><span id="idspanaddmess"></span></div><br/><div id="iddivuserlist"></div><br/><a href="/logout">logout</a>
+    <button id="idbuttonadd" type="button" onclick="onAddUser();">Add</button><button id="idbuttonremove" type="button" onclick="onRemoveUser();">Remove</button><div id="iddivadduser"><br/><input id="idinputusername" type='text' name='username' onblur="validateUser(this);"/>&nbsp;<input type='password' name='password' id="idpassword" onchange="onPasswordChange();"/>&nbsp;<input type='password' name='passwordconfirm' id="idpasswordconfirm" onchange="onPasswordConfirmChange();"/>&nbsp;<input id="idcheckboxsuper" type="checkbox" value="super"/>Super&nbsp;<button id="idbuttonaddconfirm" type="button" onclick="onAddUserConfirm();">Add New User</button><br/><span id="idspanaddmess"></span></div><br/><div id="iddivuserlist"></div><br/><a href="/logout">logout</a>
   </body>
 </html>

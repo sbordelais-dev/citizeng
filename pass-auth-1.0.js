@@ -3,41 +3,39 @@ var express         = require('express'),
     passport        = require('passport'),
     LocalStrategy   = require('passport-local').Strategy,
     bodyParser      = require('body-parser'),
-    session         = require('express-session');
-var port  = 3030;
+    session         = require('express-session'),
+    sqlite3         = require('sqlite3').verbose();
 
-// Configure app.
-//app.use(express.static(__dirname + "/html"));
-
-// Hardcoded users, ideally the users should be stored in a database.
-var users = [ {"id":1, "username":"root"  , "password":"root"   , "super":true}
-            , {"id":5, "username":"admin" , "password":"admin"  , "super":true}
-            , {"id":3, "username":"user"  , "password":"user"   , "super":false}];
- 
 // Serialize users.
 passport.serializeUser(function (user, done) {
-    done(null, user.id);
+ done(null, user.username);
 });
 
 // Deserialize users.
-passport.deserializeUser(function (id, done) {
-  // Walk users array.
-  for (u in users) {
-    if (users[u].id == id) done(null, users[u]);
-  }
+passport.deserializeUser(function (username, done) {
+  var query = "SELECT username, super FROM users WHERE username=\"" + username + "\"";
+  db.all(query, function(err, row) {
+    if (err) {
+      // User not found.
+      return done(err);
+    }
+    console.log(query + "(" + row[0].username + ")");
+    done(null, row[0]);
+  });
 });
  
 // Passport local strategy for local-login, local refers to this app.
 passport.use('local-login', new LocalStrategy(
   function (username, password, done) {
-    // Walk users array.
-    for (u in users) {
-      if ((username === users[u].username) && (password === users[u].password)) {
-        return done(null, users[u], {message: "Yes!"});
+    var query = "SELECT username, super FROM users WHERE username=\"" + username + "\" AND password=\"" + password + "\"";
+    db.all(query, function(err, row) {
+      if (err) {
+        // User not found.
+        return done(null, false, {message: "User not found."});
       }
-    }
-    // User not found.
-    return done(null, false, {message: "User not found."});
+      console.log(query + "(" + row[0].username + ", " + row[0].super + ")");
+      done(null, row[0], {message: "Yes!"});
+    });
   })
 );
  
@@ -99,8 +97,14 @@ app.get("*", isLoggedIn, function(req, res){
   res.status(404).sendFile(__dirname + "/html/404.html");
 });
 
-// Launch the app.
+// Server port.
+var port  = 3030;
+
+// Launch the server.
 const httpserver = app.listen(port);
+
+// Databse.
+var db = new sqlite3.Database((__dirname + "/db/users.db"));
 
 // Load socket.io.
 var io = require('socket.io')(httpserver);
@@ -108,11 +112,28 @@ var io = require('socket.io')(httpserver);
 // Connected users count.
 var connectedusers = 0;
 
+// Default hardcoded users.
+var users = [ {"username":"root"  , "password":"root"   , "super":true}
+             , {"username":"admin" , "password":"admin"  , "super":true}];
+
 // Log new client.
 io.sockets.on("connection", function (socket) {
   connectedusers++;
   console.log("client connected ! (" + connectedusers + ")");
 
+  // Database.
+  if (null!=db) {
+    db.serialize(function() {
+      db.run("CREATE TABLE IF NOT EXISTS users (username TEXT UNIQUE, password TEXT, super INT)");
+      var stmt = db.prepare("INSERT OR IGNORE INTO users VALUES (?,?,?)");
+      for (u in users) {
+        stmt.run(users[u].username, users[u].password, users[u].super);
+      }
+      stmt.finalize();
+    });
+    console.log("Connected to the database.");
+  };
+              
   // Disconnect message.
   socket.on("disconnect", () => {
     --connectedusers;
@@ -126,28 +147,55 @@ io.sockets.on("connection", function (socket) {
 
   // Check user name.
   socket.on("clientusername", function(data, ackfn) {
-    var isPresent = false;
-    // Walk users array.
-    for (u in users) {
-      if (users[u].username == data) { isPresent = true; break; }
-    }
-    ackfn((isPresent)? data : "");
+    var query = "SELECT username FROM users WHERE username=\"" + data + "\"";
+    db.all(query, function(err, rows) {
+      if (err) {
+        ackfn("");
+        return console.log(err.message);
+      }
+      console.log(query + "(" + rows + ")");
+      ackfn(rows);
+    });
   });
-
+              
   // Users list.
   socket.on("userslist", function(data, ackfn) {
-    var JSONlist = "{\"count\":" + users.length + ",\"array\":[";
-    var first = false;
-    // Walk users array.
-    for (u in users) {
-      if (first) JSONlist += ", ";
-      JSONlist += "{\"username\":\"" + users[u].username + "\", \"super\":" + users[u].super + "}";
-      if (!first) first=true;
-    }
-    JSONlist += "]}";
-    ackfn(JSONlist);
+    if (null==db) return;
+    var query = "SELECT username, super FROM users";
+    db.all(query, function(err, rows) {
+      if (err) return console.log(err.message);
+      ackfn(rows);
+      console.log(query);
+    });
+  });
+              
+  // Add user.
+  socket.on("adduser", function(data, ackfn) {
+    var query = "INSERT INTO users VALUES (\"" + data.username + "\",\"" + data.password + "\"," + ((data.super)?1:0) + ")";
+    db.run(query, function(err) {
+      if (err) return console.log(err.message);
+      console.log(query);
+      ackfn(data);
+    });
+  });
+
+  // Remove user.
+  socket.on("removeuser", function(data, ackfn) {
+    var query = "DELETE FROM users WHERE username=\"" + data + "\"";
+    db.run(query, function(err) {
+      if (err) return console.log(err.message);
+      console.log(query);
+      ackfn(data);
+    });
   });
 });
 
+process.on('SIGINT', () => {
+  console.log("Exiting...");
+  // Close the database connection.
+  db.close();
+  httpserver.close();
+  process.exit(0);
+});
 
 console.log("App running at localhost:" + port);

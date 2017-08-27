@@ -21,8 +21,8 @@
     function validateUser(ithis) {
       if (0<ithis.value.length) {
         idbuttonlogin.disabled = true;
-        socket.emit("clientusername", ithis.value, function(data) {
-                    if (0<data.length) {
+        socket.emit("clientusername", ithis.value, function(row) {
+                    if ((null!=row) && (0<row.length)) {
                     idbuttonlogin.disabled = false;
                     idspanloginmess.innerHTML = "";
                     }
