@@ -1,5 +1,6 @@
 var express         = require('express'),
     app             = express(),
+    fs              = require('fs'),
     passport        = require('passport'),
     LocalStrategy   = require('passport-local').Strategy,
     bodyParser      = require('body-parser'),
@@ -105,11 +106,20 @@ app.get("*", isLoggedIn, function(req, res){
 // Server port.
 var port  = 3030;
 
+// Database directory.
+var dbdir = __dirname + "/db";
+
+// Check database directory.
+if (!fs.existsSync(dbdir)) {
+  fs.mkdirSync(dbdir);
+  console.log("Create database directory '" + dbdir + "'");
+}
+
 // Launch the server.
 const httpserver = app.listen(port);
 
 // Databse.
-var db = new sqlite3.Database((__dirname + "/db/users.db"));
+var db = new sqlite3.Database((dbdir + "/users.db"));
 
 // Load socket.io.
 var io = require('socket.io')(httpserver);
