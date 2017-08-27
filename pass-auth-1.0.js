@@ -1,15 +1,41 @@
 var express         = require('express'),
     app             = express(),
     fs              = require('fs'),
+    crypto          = require('crypto'),
     passport        = require('passport'),
     LocalStrategy   = require('passport-local').Strategy,
     bodyParser      = require('body-parser'),
     session         = require('express-session'),
     sqlite3         = require('sqlite3').verbose();
 
+// Generate salt.
+var genRandomString = function(length){
+  return crypto.randomBytes(Math.ceil(length/2))
+  .toString('hex')
+  .slice(0,length);
+};
+
+// Hash password with sha512.
+var sha512 = function(password, salt){
+  var hash = crypto.createHmac('sha512', salt); /** Hashing algorithm sha512 */
+  hash.update(password);
+  var value = hash.digest('hex');
+  return { salt:salt, passwordHash:value };
+};
+
+// Hash password.
+function saltHashPassword(userpassword) {
+  var salt = genRandomString(16/* Default string size */);
+  var passwordData = sha512(userpassword, salt);
+  //console.log('UserPassword = '+userpassword);
+  //console.log('Passwordhash = '+passwordData.passwordHash);
+  //console.log('nSalt = '+passwordData.salt);
+  return passwordData;
+}
+
 // Serialize users.
 passport.serializeUser(function (user, done) {
- done(null, user.username);
+ if (null!=user) done(null, user.username);
 });
 
 // Deserialize users.
@@ -20,23 +46,31 @@ passport.deserializeUser(function (username, done) {
       // User not found.
       return done(err);
     }
-    console.log(query + "(" + row[0].username + ")");
-    done(null, row[0]);
+    if ((null!=row)&&(null!=row[0])&&(username===row[0].username)) {
+      console.log(query + "(" + row[0].username + ")");
+      return done(null, row[0]);
+    }
+         
+    // User not found.
+    return done(err);
   });
 });
  
 // Passport local strategy for local-login, local refers to this app.
 passport.use('local-login', new LocalStrategy(
   function (username, password, done) {
-    var query = "SELECT username, super FROM users WHERE username=\"" + username + "\" AND password=\"" + password + "\"";
+    var query = "SELECT username, password, salt, super FROM users WHERE username=\"" + username + "\"";
     db.all(query, function(err, row) {
       if (err) {
         // User not found.
         return done(err, null, {message: "User not found."});
       }
-      if ((null!=row)&&(null!=row[0])&&(username===row[0].username)) {
-        console.log(query + "(" + row[0].username + ", " + row[0].super + ")");
-        return done(null, row[0], {message: "Yes!"});
+      if ((null!=row)&&(null!=row[0])) {
+        var passwordData = sha512(password, row[0].salt);
+        if (passwordData.passwordHash===row[0].password) {
+          console.log(query + "(" + row[0].username + ", " + row[0].super + ")");
+          return done(null, row[0], {message: "Yes!"});
+        }
       }
         
       // User not found.
@@ -129,7 +163,7 @@ var connectedusers = 0;
 
 // Default hardcoded users.
 var users = [ {"username":"root"  , "password":"root"   , "super":true}
-             , {"username":"admin" , "password":"admin"  , "super":true}];
+            , {"username":"admin" , "password":"admin"  , "super":true}];
 
 // Log new client.
 io.sockets.on("connection", function (socket) {
@@ -139,10 +173,11 @@ io.sockets.on("connection", function (socket) {
   // Database.
   if (null!=db) {
     db.serialize(function() {
-      db.run("CREATE TABLE IF NOT EXISTS users (username TEXT UNIQUE, password TEXT, super INT)");
-      var stmt = db.prepare("INSERT OR IGNORE INTO users VALUES (?,?,?)");
+      db.run("CREATE TABLE IF NOT EXISTS users (username TEXT UNIQUE, password TEXT, salt TEXT, super INT)");
+      var stmt = db.prepare("INSERT OR IGNORE INTO users VALUES (?,?,?,?)");
       for (u in users) {
-        stmt.run(users[u].username, users[u].password, users[u].super);
+        passwddata = saltHashPassword(users[u].password);
+        stmt.run(users[u].username, passwddata.passwordHash, passwddata.salt, users[u].super);
       }
       stmt.finalize();
     });
@@ -186,7 +221,8 @@ io.sockets.on("connection", function (socket) {
               
   // Add user.
   socket.on("adduser", function(data, ackfn) {
-    var query = "INSERT INTO users VALUES (\"" + data.username + "\",\"" + data.password + "\"," + ((data.super)?1:0) + ")";
+    var passwddata = saltHashPassword(data.password);
+    var query = "INSERT INTO users VALUES (\"" + data.username + "\",\"" + passwddata.passwordHash + "\",\"" + passwddata.salt + "\"," + ((data.super)?1:0) + ")";
     db.run(query, function(err) {
       if (err) return console.log(err.message);
       console.log(query);
