@@ -31,10 +31,15 @@ passport.use('local-login', new LocalStrategy(
     db.all(query, function(err, row) {
       if (err) {
         // User not found.
-        return done(null, false, {message: "User not found."});
+        return done(err, null, {message: "User not found."});
       }
-      console.log(query + "(" + row[0].username + ", " + row[0].super + ")");
-      done(null, row[0], {message: "Yes!"});
+      if ((null!=row)&&(null!=row[0])&&(username===row[0].username)) {
+        console.log(query + "(" + row[0].username + ", " + row[0].super + ")");
+        return done(null, row[0], {message: "Yes!"});
+      }
+        
+      // User not found.
+      return done(err, null, {message: "User not found."});
     });
   })
 );
