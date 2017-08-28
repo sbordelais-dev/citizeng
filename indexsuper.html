@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Index Page (super user)</title>
+    <script type="text/javascript">
+      /* Simple function to play with socket.io. */
+      function onPing() {
+        socket.emit("consolemessage", "::io client:: onPing() !!");
+      }
+    </script>
+  </head>
+  <body>
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+      /* Global variables. */
+      var socket = io.connect();
+
+      /* Socket connection callback. */
+      socket.on("connect", function(data) {
+        socket.emit("consolemessage", "::io client:: Bonjour super !!");
+      });
+      </script>
+    <p>Hey super user !</p>
+    <p><a href="#" onclick="onPing();">ping</a></p>
+    <a href="/admin">admin</a>&nbsp;&nbsp;<a href="/logout">logout</a>
+  </body>
+</html>
