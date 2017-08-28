@@ -2,10 +2,9 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>login</title>
-    <style type="text/css">
-      </style>
+    <title>Login</title>
     <script type="text/javascript">
+      /* Initialization function. */
       function init() {
         if (null == idbuttonlogin) {
           if (null != (idbuttonlogin = document.getElementById("idbuttonlogin"))) {
@@ -18,33 +17,48 @@
           }
         }
       }
-    function validateUser(ithis) {
-      if (0<ithis.value.length) {
-        idbuttonlogin.disabled = true;
-        socket.emit("clientusername", ithis.value, function(row) {
-                    if ((null!=row) && (0<row.length)) {
-                    idbuttonlogin.disabled = false;
-                    idspanloginmess.innerHTML = "";
-                    }
-                    else {
-                    idbuttonlogin.disabled = true;
-                    idspanloginmess.innerHTML = "!! Unknown user name '" + ithis.value + "' !!"
-                    }
-                    });
+
+      /* User name validation function. */
+      function validateUser(ithis) {
+        // Field is not empty.
+        if (0<ithis.value.length) {
+          idbuttonlogin.disabled = true;
+          idspanloginmess.innerHTML = "";
+          // Check user name is registered.
+          socket.emit("clientusername", ithis.value, function(row) {
+            // Registered.
+            if ((null!=row) && (0<row.length)) {
+              idbuttonlogin.disabled = false;
+            }
+            // Not registered.
+            else {
+              idspanloginmess.innerHTML = "!!? Unknown user name '" + ithis.value + "' ?!!"
+            }
+          });
+        }
+        // Field is empty.
+        else {
+          idbuttonlogin.disabled = true;
+        }
       }
-      else {
-        idbuttonlogin.disabled = true;
-      }
-    }
     </script>
   </head>
   <body onload="init();">
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
+      // Global variables.
       var idbuttonlogin = null;
       var idspanloginmess = null;
       var socket = io.connect();
       </script>
-    <p>Please login!</p><div><form method='post' action='/login'><input type='text' name='username' onblur="validateUser(this);"/><input type='password' name='password'/><button id="idbuttonlogin" type="submit" value="submit">Connect</button></form></div><p><span id="idspanloginmess"></span></p>
+      <p>Please login!</p>
+      <div>
+        <form method='post' action='/login'>
+          <input type='text' name='username' onblur="validateUser(this);"/>
+          <input type='password' name='password'/>
+          <button type="submit" value="submit" id="idbuttonlogin">Login</button>
+        </form>
+      </div>
+      <p><span id="idspanloginmess"></span></p>
   </body>
 </html>
