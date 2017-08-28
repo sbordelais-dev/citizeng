@@ -6,8 +6,8 @@
     <style type="text/css">
     </style>
     <script type="text/javascript">
+      /* Initialization function. */
       function init() {
-        //alert(window.location.href);
         buttonadd = document.getElementById("idbuttonadd");
         buttonadd.disabled = false;
         buttonremove = document.getElementById("idbuttonremove");
@@ -22,57 +22,60 @@
         if (null!=(divuserlist = document.getElementById("iddivuserlist"))) divuserlist.innerHTML = "";
         checkboxsuper = document.getElementById("idcheckboxsuper");
       }
-      function refresh() {
-        socket.emit("userslist", "", function(rows) {
+
+      /* Refresh users table. */
+      function refreshUserTable() {
+        // Ask for users list.
+        socket.emit("userlist", "", function(err, rows) {
           var disabled = "";
           var divusers = "";
-          divusers += "<table style=\"border:1px solid black\">";
-          divusers += "<tr><th><input id=\"idcheckboxall\" type=\"checkbox\" name=\"allusers\" value=\"allusers\" onclick=\"onToggleUsers(this);\"></th><th>User Name</th><th>Super User</th></tr>";
-          for (u in rows) {
-            divusers += "<tr>";
-            if (root === rows[u].username) disabled = "disabled"; else disabled = "";
-            divusers += "<td><input id=\"idselect_" + u + "\" type=\"checkbox\" name=\"user\" value=\"" + u + "\" onclick=\"onSelectUser(this);\"" + disabled + ">";
-            divusers += "<td id=\"idusername_" + u + "\">" + rows[u].username + "</td>";
-            divusers += "<td id=\"idusersuper_" + u + "\">" + rows[u].super + "</td>";
-            divusers += "</tr>";
-          }
-          divusers += "</table>";
-          divuserlist.innerHTML = divusers;
-          checkboxall = document.getElementById("idcheckboxall");
-        });
-      }
-      function onSelectUser(ithis) {
-        divadd.style.display = "none";
-        socket.emit("userslist", "", function(rows) {
-          var elem = null;
-          var checked = 0;
-          for (u in rows) {
-            if (null != (elem = document.getElementById("idselect_" + u)) ) {
-              if (elem.checked) checked++;
-            }
-          }
-          if (0==checked) {
-            buttonadd.disabled = false;
-            buttonremove.disabled = true;
+          checkboxall = null;
+          if (null != err) {
+            alert(err.message);
           }
           else {
-            buttonadd.disabled = true;
-            buttonremove.disabled = false;
+            // Build users table.
+            divusers += "<table style=\"border:1px solid black\">";
+            divusers += "<tr><th><input id=\"idcheckboxall\" type=\"checkbox\" name=\"allusers\" value=\"allusers\" onclick=\"onToggleUsers(this);\"></th><th>User Name</th><th>Super User</th></tr>";
+            for (u in rows) {
+              divusers += "<tr>";
+              if (root === rows[u].username) disabled = "disabled"; else disabled = "";
+              divusers += "<td><input id=\"idselect_" + u + "\" type=\"checkbox\" name=\"user\" value=\"" + u + "\" onclick=\"onSelectUser(this);\"" + disabled + ">";
+              divusers += "<td id=\"idusername_" + u + "\">" + rows[u].username + "</td>";
+              divusers += "<td id=\"idusersuper_" + u + "\">" + rows[u].super + "</td>";
+              divusers += "</tr>";
+            }
+            divusers += "</table>";
+
+            // Set the global element here because it just has been created.
+            checkboxall = document.getElementById("idcheckboxall");
           }
+          divuserlist.innerHTML = divusers;
         });
       }
-      function onToggleUsers(ithis) {
+
+      /* Selected user */
+      function onSelectUser(ithis) {
         divadd.style.display = "none";
-        socket.emit("userslist", "", function(rows) {
-          var elem = null;
+
+        // Ask for users list.
+        socket.emit("userlist", "", function(err, rows) {
           var checked = 0;
-          for (u in rows) {
-            if (root !== rows[u].username) {
+
+          // Not found.
+          if (null != err) {
+            alert(err.message);
+          }
+          // Found.
+          else {
+            var elem = null;
+            for (u in rows) {
               if (null != (elem = document.getElementById("idselect_" + u)) ) {
-                 if (elem.checked = ithis.checked) checked++;
+                if (elem.checked) checked++;
               }
             }
           }
+
           if (0==checked) {
             buttonadd.disabled = false;
             buttonremove.disabled = true;
@@ -83,40 +86,101 @@
           }
         });
       }
-      function onRemoveUser() {
-        socket.emit("userslist", "", function(rows) {
-          var elem = null;
-          for (u in rows) {
-            if (null != (elem = document.getElementById("idselect_" + u)) ) {
-              if (elem.checked) {
-                elem.checked = false;
-                if (null != (elem = document.getElementById("idusername_" + u)) ) {
-                  socket.emit("removeuser", elem.innerHTML, function(data){
-                    refresh();
-                  });
+
+      /* Multiple users selection */
+      function onToggleUsers(ithis) {
+        divadd.style.display = "none";
+
+        // Ask for users list.
+        socket.emit("userlist", "", function(err, rows) {
+          var checked = 0;
+
+          // Not found.
+          if (null != err) {
+            alert(err.message);
+          }
+          // Found.
+          else {
+            var elem = null;
+            for (u in rows) {
+              if (root !== rows[u].username) {
+                if (null != (elem = document.getElementById("idselect_" + u)) ) {
+                  if (elem.checked = ithis.checked) checked++;
                 }
               }
             }
           }
-          checkboxall.checked = false;
+
+          if (0==checked) {
+            buttonadd.disabled = false;
+            buttonremove.disabled = true;
+          }
+          else {
+            buttonadd.disabled = true;
+            buttonremove.disabled = false;
+          }
+        });
+      }
+
+      /* Remove user */
+      function onRemoveUser() {
+        // Ask for users list.
+        socket.emit("userlist", "", function(err, rows) {
+          // Not found.
+          if (null != err) {
+            alert(err.message);
+          }
+          // Found.
+          else {
+            var elem = null;
+            for (u in rows) {
+              if (null != (elem = document.getElementById("idselect_" + u)) ) {
+                if (elem.checked) {
+                  elem.checked = false;
+                  if (null != (elem = document.getElementById("idusername_" + u)) ) {
+                    socket.emit("userdelete", elem.innerHTML, function(data){
+                      refreshUserTable();
+                    });
+                  }
+                }
+              }
+            }
+          }
+
+          if (null != checkboxall) {checkboxall.checked = false;}
           buttonadd.disabled = false;
           buttonremove.disabled = true;
         });
       }
+
+      /* Add user. */
       function onAddUser() {
-        socket.emit("userslist", "", function(rows) {
-          var elem = null;
-          for (u in rows) {
-            if (null != (elem = document.getElementById("idselect_" + u)) ) {
-              if (elem.checked) {
-                elem.checked = false;
+        // Ask for users list.
+        socket.emit("userlist", "", function(err, rows) {
+          // Not found.
+          if (null != err) {
+            alert(err.message);
+          }
+          // Found.
+          else {
+            var elem = null;
+            for (u in rows) {
+              if (null != (elem = document.getElementById("idselect_" + u)) ) {
+                if (elem.checked) {
+                  elem.checked = false;
+                }
               }
             }
           }
-          checkboxall.checked = false;
+
+          if (null != checkboxall) {checkboxall.checked = false;}
           buttonadd.disabled = false;
           buttonremove.disabled = true;
+
+          // Toggle add form.
           onDivToggle();
+
+          // Add form is hidden.
           if (divadd.style.display === "block") {
             password.value = "";
             passwordconfirm.value = "";
@@ -125,32 +189,47 @@
           }
         });
       }
+
+      /* Show/Hide DIV section. */
       function onDivToggle() {
-        if (null==divadd) return ;
+        if (null == divadd) return ;
         if (divadd.style.display === "none") {
          divadd.style.display = "block";
         } else {
          divadd.style.display = "none";
         }
       }
+
+      /* Check user presence */
       function validateUser(ithis) {
         if (0<ithis.value.length) {
-          socket.emit("userslist", "", function(rows) {
+          // Ask for users list.
+          socket.emit("userlist", "", function(err, rows) {
             buttonaddconfirm.disabled = true;
-            var elem = null;
-            var found = false;
-            for (u in rows) {
-              if (null != (elem = document.getElementById("idusername_" + u)) ) {
-                if (elem.innerHTML===ithis.value) found = true;
+            // Not found.
+            if (null != err) {
+              alert(err.message);
+            }
+            // Found.
+            else {
+              var elem = null;
+              var found = false;
+              for (u in rows) {
+                if (null != (elem = document.getElementById("idusername_" + u)) ) {
+                  if (elem.innerHTML === ithis.value) found = true;
+                }
               }
             }
+
+            // User found.
             if (found) {
               buttonaddconfirm.disabled = true;
-              if (null!=spanaddmess) spanaddmess.innerHTML = "!! Existing user name '" + ithis.value + "' !!";
+              spanaddmess.innerHTML = "!! Existing user name '" + ithis.value + "' !!";
             }
+            // User not found.
             else {
               buttonaddconfirm.disabled = false;
-              if (null!=spanaddmess) spanaddmess.innerHTML = "";
+              spanaddmess.innerHTML = "";
             }
           });
         }
@@ -158,6 +237,8 @@
           buttonaddconfirm.disabled = true;
         }
       }
+
+      /* Confirm user add. */
       function onAddUserConfirm() {
         if (null == password) return ;
         if (null == passwordconfirm) return ;
@@ -166,11 +247,15 @@
           buttonaddconfirm.disabled = true;
         }
         else {
+          // Hide section.
           onDivToggle();
+
+          // Build new user object.
           var newuser = {username:inputusername.value, password:password.value, super:(checkboxsuper.checked)};
-          socket.emit("adduser", newuser, function(data){
-            refresh();
+          socket.emit("useradd", newuser, function(data){
+            refreshUserTable();
           });
+
           spanaddmess.innerHTML = "";
           password.value = "";
           passwordconfirm.value = "";
@@ -178,18 +263,23 @@
           buttonaddconfirm.disabled = false;
         }
       }
-    function onPasswordChange() {
-      buttonaddconfirm.disabled = false;
-    }
-    function onPasswordConfirmChange() {
-      buttonaddconfirm.disabled = false;
-    }
+
+      /* On password changed function. */
+      function onPasswordChange() {
+        buttonaddconfirm.disabled = false;
+      }
+
+      /* On password confirmed function. */
+      function onPasswordConfirmChange() {
+        buttonaddconfirm.disabled = false;
+      }
     </script>
   </head>
   <body onload="init();">
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
-      var root = "root";
+      /* Global variables. */
+      const root = "root";
       var buttonadd = null;
       var buttonremove = null;
       var divadd = null;
@@ -202,9 +292,11 @@
       var password = null;
       var passwordconfirm = null;
       var socket = io.connect();
+
+      /* Socket connection callback. */
       socket.on("connect", function(data) {
         socket.emit("consolemessage", "::io client:: Bonjour super user !!");
-        refresh();
+        refreshUserTable();
       });
     </script>
     <p>Hey (superuser) !</p>

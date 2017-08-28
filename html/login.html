@@ -25,14 +25,14 @@
           idbuttonlogin.disabled = true;
           idspanloginmess.innerHTML = "";
           // Check user name is registered.
-          socket.emit("clientusername", ithis.value, function(row) {
-            // Registered.
-            if ((null != row) && (0 < row.length)) {
-              idbuttonlogin.disabled = false;
+          socket.emit("userpresent", ithis.value, function(err, row) {
+            // User not found.
+            if (null != err) {
+              idspanloginmess.innerHTML = (0 < err.message.length)? (err.message) : ("!!? Bad response for '" + ithis.value + "' ?!!");
             }
-            // Not registered.
+            // User found.
             else {
-              idspanloginmess.innerHTML = "!!? Unknown user name '" + ithis.value + "' ?!!"
+              idbuttonlogin.disabled = false;
             }
           });
         }
