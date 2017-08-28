@@ -1,5 +1,5 @@
 // Requirements.
-var citizenserver = require('./pass-auth-1.0');
+var citizenserver = require('./citizen-engine');
 
 // Initialize the server.
 citizenserver.init(3030);
