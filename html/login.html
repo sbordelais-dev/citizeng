@@ -21,13 +21,13 @@
       /* User name validation function. */
       function validateUser(ithis) {
         // Field is not empty.
-        if (0<ithis.value.length) {
+        if (0 < ithis.value.length) {
           idbuttonlogin.disabled = true;
           idspanloginmess.innerHTML = "";
           // Check user name is registered.
           socket.emit("clientusername", ithis.value, function(row) {
             // Registered.
-            if ((null!=row) && (0<row.length)) {
+            if ((null != row) && (0 < row.length)) {
               idbuttonlogin.disabled = false;
             }
             // Not registered.
