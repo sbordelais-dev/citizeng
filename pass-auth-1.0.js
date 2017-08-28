@@ -3,7 +3,6 @@
 /* ============= */
 
 var express         = require('express'),
-    app             = express(),
     fs              = require('fs'),
     crypto          = require('crypto'),
     passport        = require('passport'),
@@ -17,14 +16,14 @@ var express         = require('express'),
 /* ============== */
 
 /* Random string generator function. */
-var genRandomString = function(length){
+function genRandomString(length){
   return crypto.randomBytes(Math.ceil(length/2))
   .toString('hex')
   .slice(0,length);
 };
 
 /* Function to hash password with sha512 algorithm. */
-var sha512 = function(userpassword, salt){
+function sha512(userpassword, salt){
   var hmac = crypto.createHmac('sha512', salt);
   hmac.update(userpassword);
   var value = hmac.digest('hex');
@@ -62,7 +61,7 @@ passport.serializeUser(function (user, done) {
 /* Deserialize user object. */
 passport.deserializeUser(function (username, done) {
   var query = "SELECT username, super FROM users WHERE username=\"" + username + "\"";
-  db.all(query, function(err, row) {
+  server.db.all(query, function(err, row) {
     // Not found.
     if (err) return done({message:err.message});
 
@@ -85,7 +84,7 @@ passport.deserializeUser(function (username, done) {
 /* Passport local strategy for local-login. */
 passport.use('local-login', new LocalStrategy(function (username, password, done) {
   var query = "SELECT username, password, salt, super FROM users WHERE username=\"" + username + "\"";
-  db.all(query, function(err, row) {
+  server.db.all(query, function(err, row) {
     // Not found.
     if (err) return done({message:err.message});
 
@@ -111,67 +110,6 @@ passport.use('local-login', new LocalStrategy(function (username, password, done
   });
 }));
 
-/* ===================== */
-/* Application functions */
-/* ===================== */
-
-/* Retrieving form data. */
-app.use(bodyParser.json()); 
-app.use(bodyParser.urlencoded({extended: true}));
-
-/* Initialize passposrt and and session for persistent login sessions. */
-app.use(session({
-  secret: "chainesecrete",
-  resave: true,
-  saveUninitialized: true
-}));
-app.use(passport.initialize());
-app.use(passport.session());
-
-/* Main page. */
-app.get("/", isLoggedIn, function (req, res) {
-  // Super user's page.
-  if(req.user.super) {
-    res.sendFile(htmlpath_indexsuper);
-  }
-  // Default user's page.
-  else {
-    res.sendFile(htmlpath_index);
-  }
-
-  // Log.
-  console.log("main page (" + req.user.username + ", " + req.user.super + ")");
-});
-
-/* Login page. */
-app.get("/login", function (req, res) {
-  // Already authenticated.
-  if(req.isAuthenticated()) {
-    res.redirect("/");
-
-    // Log.
-    console.log("already authenticated (" + req.user.username + ", " + req.user.super + ")");
-  }
-  // Not yet authenticated.
-  else {
-    res.sendFile(htmlpath_login);
-  }
-});
-
-/* Login post. */
-app.post("/login", passport.authenticate("local-login", {successRedirect: "/", failureRedirect: "/login"/*, failureFlash: true*/}));
-
-/* Logout page. */
-app.get("/logout", function (req, res) {
-  req.logout();
-  res.redirect("/login");
-});
-
-/* The 404 page (Alway keep this as the last route). */
-app.get("*", isLoggedIn, function(req, res){
-  res.status(404).sendFile(htmlpath_404);
-});
-
 /* ================ */
 /* Global variables */
 /* ================ */
@@ -179,170 +117,310 @@ app.get("*", isLoggedIn, function(req, res){
 // Connected users count.
 var connectedusers = 0;
 
-// Server port.
-const port  = 3030;
-
 // HTML pages to render.
-const htmlpath_404        = __dirname + "/html/404.html";
-const htmlpath_index      = __dirname + "/html/index.html";
-const htmlpath_indexsuper = __dirname + "/html/indexsuper.html";
-const htmlpath_login      = __dirname + "/html/login.html";
+const htmlpath_404    = __dirname + "/html/404.html";
+const htmlpath_admin  = __dirname + "/html/indexsuper.html";
+const htmlpath_forbid = __dirname + "/html/forbidden.html";
+const htmlpath_login  = __dirname + "/html/login.html";
 
-// Database directory.
-const dbdir = __dirname + "/db";
-
-// Check database directory.
-if (!fs.existsSync(dbdir)) {
-  fs.mkdirSync(dbdir);
-  
-  // Log.
-  console.log("Create database subdirectory '" + dbdir + "'");
-}
-
-// Databse.
-var db = new sqlite3.Database((dbdir + "/users.db"));
 
 // Default hardcoded users.
 const users = [ {"username":"root"  , "password":"root"   , "super":true}
               , {"username":"admin" , "password":"admin"  , "super":true}];
 
-// Launch the server.
-const httpserver = app.listen(port);
+// Express app.
+var app = null;
 
-// Socket.io.
-var io = require('socket.io')(httpserver);
+// Server object.
+const server =  { db:null
+                , http:null
+                , io:null };
+
+/* Relese server object */
+function finalize() {
+  if (null == server) return ;
+
+  // Close the database connection.
+  if (null != server.db) {
+    server.db.close();
+    server.db = null;
+  }
+  
+  // Disconnect socket.io.
+  if (null != server.io) {
+    //server.io.Disconnect();
+    server.io = null;
+  }
+  
+  // Close server connection.
+  if (null != server.server) {
+    server.http.close();
+    server.http = null;
+  }
+}
 
 /* Process exit management */
 process.on('SIGINT', () => {
   // Log.
   console.log("Exiting...");
 
-  // Close the database connection.
-  db.close();
-  httpserver.close();
+  // Release server object.
+  finalize();
            
   // Do exit now.
   process.exit(0);
 });
 
-/* ==================== */
-/* Socket.io management */
-/* ==================== */
+/* ================== */
+/* Exported functions */
+/* ================== */
 
-/* Socket.io connection. */
-io.sockets.on("connection", function (socket) {
-  // Count up.
-  connectedusers++;
+/* Initialize the server */
+exports.init = function (port) {
+  // Already started.
+  if (null != app) return server;
 
-  // Log.
-  console.log("client connected ! (" + connectedusers + ")");
+  // Create express app.
+  if (null == (app = express())) return server;
+  
+  /* ========================= */
+  /* Application configuration */
+  /* ========================= */
+  
+  /* Retrieving form data. */
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({extended: true}));
+  
+  /* Initialize passposrt and and session for persistent login sessions. */
+  app.use(session({
+    secret: "chainesecrete",
+    resave: true,
+    saveUninitialized: true
+  }));
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  /* =================== */
+  /* Application routers */
+  /* =================== */
+  
+  /* Login page. */
+  app.get("/login", function (req, res) {
+    // Already authenticated.
+    if(req.isAuthenticated()) {
+      res.redirect("/");
+
+      // Log.
+      console.log("already authenticated (" + req.user.username + ", " + req.user.super + ")");
+    }
+    // Not yet authenticated.
+    else {
+      res.sendFile(htmlpath_login);
+    }
+  });
+
+  /* Login post. */
+  app.post("/login", passport.authenticate("local-login", {successRedirect: "/", failureRedirect: "/login"/*, failureFlash: true*/}));
+  
+  /* Logout page. */
+  app.get("/logout", function (req, res) {
+    req.logout();
+    res.redirect("/login");
+  });
+
+  /* Administration page. */
+  app.get("/admin", isLoggedIn, function (req, res) {
+    // Administration page.
+    if (req.user.super) {
+      res.sendFile(htmlpath_admin);
+    }
+    // Forbidden page.
+    else {
+      res.sendFile(htmlpath_forbid);
+    }
+  });
+
+  // Start the HTTP server.
+  if (null == (server.http = app.listen(port))) return server;
+
+  // Socket.io.
+  if (null == (server.io = require('socket.io')(server.http))) {
+    // Release server object.
+    finalize();
+
+    // Oops.
+    return server;
+  }
+
+  // Database directory.
+  const dbdir = __dirname + "/db";
+
+  // Check database directory.
+  if (!fs.existsSync(dbdir)) {
+    fs.mkdirSync(dbdir);
+
+    // Log.
+    console.log("Create database subdirectory '" + dbdir + "'");
+  }
 
   // Database.
-  if (null != db) {
-    db.serialize(function() {
-      db.run("CREATE TABLE IF NOT EXISTS users (username TEXT UNIQUE, password TEXT, salt TEXT, super INT)");
-      var stmt = db.prepare("INSERT OR IGNORE INTO users VALUES (?,?,?,?)");
+  if (null == (server.db = new sqlite3.Database((dbdir + "/users.db")))) {
+    // Release server object.
+    finalize();
+
+    // Oops.
+    return server;
+  }
+
+  // Done.
+  return server;
+}
+
+/* Run the server */
+exports.run = function () {
+  // Server is already running.
+  if (null == server) return ;
+
+  /* =================== */
+  /* Application routers */
+  /* =================== */
+
+  /* The 404 page (Alway keep this as the last route). */
+  app.get("*", isLoggedIn, function(req, res){
+    res.status(404).sendFile(htmlpath_404);
+  });
+  
+  /* ==================== */
+  /* Socket.io management */
+  /* ==================== */
+
+  /* Socket.io connection. */
+  server.io.sockets.on("connection", function (socket) {
+    // Count up.
+    connectedusers++;
+
+    // Log.
+    console.log("client connected ! (" + connectedusers + ")");
+
+    // Database.
+    server.db.serialize(function() {
+      server.db.run("CREATE TABLE IF NOT EXISTS users (username TEXT UNIQUE, password TEXT, salt TEXT, super INT)");
+      var stmt = server.db.prepare("INSERT OR IGNORE INTO users VALUES (?,?,?,?)");
       for (u in users) {
         hashedpassword = doHashPassword(users[u].password);
         stmt.run(users[u].username, hashedpassword.hash, hashedpassword.salt, users[u].super);
       }
       stmt.finalize();
     });
-
+                  
     // Log.
     console.log("Connected to the database.");
-  };
-              
-  /* Socket.io disconnect. */
-  socket.on("disconnect", () => {
-    // Count down.
-    --connectedusers;
 
-    // Log.
-    console.log("client disconnected");
-  });
-              
-  /* Simple message. */
-  socket.on("consolemessage", function(data) {
-    // Log.
-    console.log(data);
-  });
+    /* Socket.io disconnect. */
+    socket.on("disconnect", () => {
+      // Count down.
+      --connectedusers;
 
-  /* Check user name. */
-  socket.on("userpresent", function(data, ackfn) {
-    var query = "SELECT username FROM users WHERE username=\"" + data + "\"";
-    db.all(query, function(err, row) {
-      if (err) {
-        ackfn({message:err.message});
-      }
-      // Not found.
-      else if (0 == row.length) {
-        ackfn({message:"User '" + data + "' is unknown"});
-      }
-      // Found.
-      else {
-        ackfn(null, row);
+      // Log.
+      console.log("client disconnected");
+    });
 
-        // Log.
-        console.log("userpresent() : " + "'" + query + "'");
-      }
+    /* Simple message. */
+    socket.on("consolemessage", function(data) {
+      // Log.
+      console.log(data);
+    });
+
+    /* Check user name. */
+    socket.on("userpresent", function(data, ackfn) {
+      var query = "SELECT username FROM users WHERE username=\"" + data + "\"";
+      server.db.all(query, function(err, row) {
+        if (err) {
+          ackfn({message:err.message});
+        }
+        // Not found.
+        else if (0 == row.length) {
+          ackfn({message:"User '" + data + "' is unknown"});
+        }
+        // Found.
+        else {
+          ackfn(null, row);
+
+          // Log.
+          console.log("userpresent() : " + "'" + query + "'");
+        }
+      });
+    });
+
+    /* List users. */
+    socket.on("userlist", function(data, ackfn) {
+      var query = "SELECT username, super FROM users";
+      server.db.all(query, function(err, rows) {
+        if (err) {
+          ackfn({message:err.message});
+        }
+        else {
+          ackfn(null, rows);
+
+          // Log.
+          console.log("userlist() : " + "'" + query + "'");
+        }
+      });
+    });
+
+    /* Add user. */
+    socket.on("useradd", function(data, ackfn) {
+      var passwddata = doHashPassword(data.password);
+      var query = "INSERT INTO users VALUES (\"" + data.username + "\",\"" + passwddata.hash + "\",\"" + passwddata.salt + "\"," + ((data.super)?1:0) + ")";
+      server.db.run(query, function(err) {
+        if (err) {
+          ackfn({message:err.message});
+        }
+        else {
+          ackfn({message:"ok"});
+
+          // Log.
+          console.log("useradd() : " + "'" + query + "'");
+        }
+      });
+    });
+
+    /* Remove user. */
+    socket.on("userdelete", function(data, ackfn) {
+      var query = "DELETE FROM users WHERE username=\"" + data + "\"";
+      server.db.run(query, function(err) {
+        if (err) {
+          ackfn({message:err.message});
+        }
+        else {
+          ackfn({message:"ok"});
+
+          // Log.
+          console.log("userdelete() : " + "'" + query + "'");
+        }
+      });
     });
   });
-              
-  /* List users. */
-  socket.on("userlist", function(data, ackfn) {
-    if (null==db) return;
-    var query = "SELECT username, super FROM users";
-    db.all(query, function(err, rows) {
-      if (err) {
-        ackfn({message:err.message});
-      }
-      else {
-        ackfn(null, rows);
+}
 
-        // Log.
-        console.log("userlist() : " + "'" + query + "'");
-      }
-    });
-  });
-              
-  /* Add user. */
-  socket.on("useradd", function(data, ackfn) {
-    var passwddata = doHashPassword(data.password);
-    var query = "INSERT INTO users VALUES (\"" + data.username + "\",\"" + passwddata.hash + "\",\"" + passwddata.salt + "\"," + ((data.super)?1:0) + ")";
-    db.run(query, function(err) {
-      if (err) {
-        ackfn({message:err.message});
-      }
-      else {
-        ackfn({message:"ok"});
+/* Custom GET method route. */
+exports.get = function(route, func) {
+  if (null == app) return ;
+  
+  // Log.
+  console.log("get() : Registering GET method route " + "'" + route + "'");
+  
+  // Do GET.
+  app.get(route, isLoggedIn, func);
+};
 
-        // Log.
-        console.log("useradd() : " + "'" + query + "'");
-      }
-    });
-  });
-
-  /* Remove user. */
-  socket.on("userdelete", function(data, ackfn) {
-    var query = "DELETE FROM users WHERE username=\"" + data + "\"";
-    db.run(query, function(err) {
-      if (err) {
-        ackfn({message:err.message});
-      }
-      else {
-        ackfn({message:"ok"});
-
-        // Log.
-        console.log("userdelete() : " + "'" + query + "'");
-      }
-    });
-  });
-});
-
-
-/* ======== */
-/* Gone now */
-/* ======== */
-
-console.log("App running at localhost:" + port);
+/* Custom POST method route. */
+exports.post = function(route, func) {
+  if (null == app) return ;
+  
+  // Log.
+  console.log("post() : Registering POST method route " + "'" + route + "'");
+  
+  // Do POST.
+  app.post(route, isLoggedIn, func);
+};
