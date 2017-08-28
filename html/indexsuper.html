@@ -2,25 +2,23 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>index (super)</title>
-    <style type="text/css">
-    </style>
+    <title>Index Page (super user)</title>
     <script type="text/javascript">
       /* Initialization function. */
       function init() {
-        buttonadd = document.getElementById("idbuttonadd");
-        buttonadd.disabled = false;
-        buttonremove = document.getElementById("idbuttonremove");
-        buttonremove.disabled = true;
-        buttonaddconfirm = document.getElementById("idbuttonaddconfirm");
-        divadd = document.getElementById("iddivadduser");
-        if (null!=divadd) divadd.style.display = "none";
-        spanaddmess = document.getElementById("idspanaddmess");
-        inputusername = document.getElementById("idinputusername");
-        password = document.getElementById("idpassword");
-        passwordconfirm = document.getElementById("idpasswordconfirm");
-        if (null!=(divuserlist = document.getElementById("iddivuserlist"))) divuserlist.innerHTML = "";
-        checkboxsuper = document.getElementById("idcheckboxsuper");
+        // Reset contextual form.
+        if (null != (ctxuserform.buttonadd        = document.getElementById("idbuttonadd"))) {ctxuserform.buttonadd.disabled = false;}
+        if (null != (ctxuserform.buttonaddconfirm = document.getElementById("idbuttonaddconfirm"))) {ctxuserform.buttonaddconfirm.disabled = true;}
+        if (null != (ctxuserform.buttondel        = document.getElementById("idbuttondel"))) {ctxuserform.buttondel.disabled = true;}
+        if (null != (ctxuserform.checkboxsuper    = document.getElementById("idcheckboxsuper"))) {};
+        if (null != (ctxuserform.divadd           = document.getElementById("iddivadd"))) {ctxuserform.divadd.style.display = "none";}
+        if (null != (ctxuserform.inputusername    = document.getElementById("idinputusername"))) {};
+        if (null != (ctxuserform.password         = document.getElementById("idpassword"))) {};
+        if (null != (ctxuserform.passwordconfirm  = document.getElementById("idpasswordconfirm"))) {};
+        if (null != (ctxuserform.spanmessage      = document.getElementById("idspanmessage"))) {};
+ 
+        // Reset users list.
+        if (null != (divuserlist = document.getElementById("iddivuserlist"))) divuserlist.innerHTML = "";
       }
 
       /* Refresh users table. */
@@ -56,7 +54,7 @@
 
       /* Selected user */
       function onSelectUser(ithis) {
-        divadd.style.display = "none";
+        ctxuserform.divadd.style.display = "none";
 
         // Ask for users list.
         socket.emit("userlist", "", function(err, rows) {
@@ -77,19 +75,19 @@
           }
 
           if (0==checked) {
-            buttonadd.disabled = false;
-            buttonremove.disabled = true;
+            ctxuserform.buttonadd.disabled = false;
+            ctxuserform.buttondel.disabled = true;
           }
           else {
-            buttonadd.disabled = true;
-            buttonremove.disabled = false;
+            ctxuserform.buttonadd.disabled = true;
+            ctxuserform.buttondel.disabled = false;
           }
         });
       }
 
       /* Multiple users selection */
       function onToggleUsers(ithis) {
-        divadd.style.display = "none";
+        ctxuserform.divadd.style.display = "none";
 
         // Ask for users list.
         socket.emit("userlist", "", function(err, rows) {
@@ -112,18 +110,18 @@
           }
 
           if (0==checked) {
-            buttonadd.disabled = false;
-            buttonremove.disabled = true;
+            ctxuserform.buttonadd.disabled = false;
+            ctxuserform.buttondel.disabled = true;
           }
           else {
-            buttonadd.disabled = true;
-            buttonremove.disabled = false;
+            ctxuserform.buttonadd.disabled = true;
+            ctxuserform.buttondel.disabled = false;
           }
         });
       }
 
       /* Remove user */
-      function onRemoveUser() {
+      function onDelUser() {
         // Ask for users list.
         socket.emit("userlist", "", function(err, rows) {
           // Not found.
@@ -148,8 +146,8 @@
           }
 
           if (null != checkboxall) {checkboxall.checked = false;}
-          buttonadd.disabled = false;
-          buttonremove.disabled = true;
+          ctxuserform.buttonadd.disabled = false;
+          ctxuserform.buttondel.disabled = true;
         });
       }
 
@@ -174,29 +172,30 @@
           }
 
           if (null != checkboxall) {checkboxall.checked = false;}
-          buttonadd.disabled = false;
-          buttonremove.disabled = true;
+          ctxuserform.buttonadd.disabled = false;
+          ctxuserform.buttondel.disabled = true;
 
           // Toggle add form.
           onDivToggle();
 
           // Add form is hidden.
-          if (divadd.style.display === "block") {
-            password.value = "";
-            passwordconfirm.value = "";
-            inputusername.value = "";
-            spanaddmess.innerHTML = "";
+          if (ctxuserform.divadd.style.display === "block") {
+            ctxuserform.checkboxsuper.checked = false;
+            ctxuserform.inputusername.value = "";
+            ctxuserform.password.value = "";
+            ctxuserform.passwordconfirm.value = "";
+            ctxuserform.spanmessage.innerHTML = "";
           }
         });
       }
 
       /* Show/Hide DIV section. */
       function onDivToggle() {
-        if (null == divadd) return ;
-        if (divadd.style.display === "none") {
-         divadd.style.display = "block";
+        if (null == ctxuserform.divadd) return ;
+        if (ctxuserform.divadd.style.display === "none") {
+          ctxuserform.divadd.style.display = "block";
         } else {
-         divadd.style.display = "none";
+          ctxuserform.divadd.style.display = "none";
         }
       }
 
@@ -205,7 +204,7 @@
         if (0<ithis.value.length) {
           // Ask for users list.
           socket.emit("userlist", "", function(err, rows) {
-            buttonaddconfirm.disabled = true;
+            ctxuserform.buttonaddconfirm.disabled = true;
             // Not found.
             if (null != err) {
               alert(err.message);
@@ -223,55 +222,58 @@
 
             // User found.
             if (found) {
-              buttonaddconfirm.disabled = true;
-              spanaddmess.innerHTML = "!! Existing user name '" + ithis.value + "' !!";
+              ctxuserform.buttonaddconfirm.disabled = true;
+              ctxuserform.spanmessage.innerHTML = "!! Existing user name '" + ithis.value + "' !!";
             }
             // User not found.
             else {
-              buttonaddconfirm.disabled = false;
-              spanaddmess.innerHTML = "";
+              ctxuserform.buttonaddconfirm.disabled = false;
+              ctxuserform.spanmessage.innerHTML = "";
             }
           });
         }
         else {
-          buttonaddconfirm.disabled = true;
+          ctxuserform.buttonaddconfirm.disabled = true;
         }
       }
 
       /* Confirm user add. */
       function onAddUserConfirm() {
-        if (null == password) return ;
-        if (null == passwordconfirm) return ;
-        if (password.value !== passwordconfirm.value) {
-          spanaddmess.innerHTML = "!! Password does not match !!";
-          buttonaddconfirm.disabled = true;
+        if (ctxuserform.password.value !== ctxuserform.passwordconfirm.value) {
+          ctxuserform.buttonaddconfirm.disabled = true;
+          ctxuserform.spanmessage.innerHTML = "!! Password does not match !!";
         }
         else {
           // Hide section.
           onDivToggle();
 
           // Build new user object.
-          var newuser = {username:inputusername.value, password:password.value, super:(checkboxsuper.checked)};
+          var newuser = { username:ctxuserform.inputusername.value
+                        , password:ctxuserform.password.value
+                        , super:(ctxuserform.checkboxsuper.checked)};
+
+          // Ask for adding new user.
           socket.emit("useradd", newuser, function(data){
             refreshUserTable();
           });
 
-          spanaddmess.innerHTML = "";
-          password.value = "";
-          passwordconfirm.value = "";
-          inputusername.value = "";
-          buttonaddconfirm.disabled = false;
+          // Reset contextual form.
+          ctxuserform.buttonaddconfirm.disabled = false;
+          ctxuserform.inputusername.value = "";
+          ctxuserform.password.value = "";
+          ctxuserform.passwordconfirm.value = "";
+          ctxuserform.spanmessage.innerHTML = "";
         }
       }
 
       /* On password changed function. */
       function onPasswordChange() {
-        buttonaddconfirm.disabled = false;
+        ctxuserform.buttonaddconfirm.disabled = false;
       }
 
       /* On password confirmed function. */
       function onPasswordConfirmChange() {
-        buttonaddconfirm.disabled = false;
+        ctxuserform.buttonaddconfirm.disabled = false;
       }
     </script>
   </head>
@@ -280,17 +282,17 @@
     <script type="text/javascript">
       /* Global variables. */
       const root = "root";
-      var buttonadd = null;
-      var buttonremove = null;
-      var divadd = null;
+      var ctxuserform = { buttonadd:null
+                        , buttonaddconfirm:null
+                        , buttonrmv:null
+                        , checkboxsuper:null
+                        , inputusername:null
+                        , password:null
+                        , passwordconfirm:null
+                        , spanmessage:null };
+
       var checkboxall = null;
-      var checkboxsuper = null;
-      var buttonaddconfirm = null;
-      var spanaddmess = null;
-      var inputusername = null;
       var divuserlist = null;
-      var password = null;
-      var passwordconfirm = null;
       var socket = io.connect();
 
       /* Socket connection callback. */
@@ -300,6 +302,23 @@
       });
     </script>
     <p>Hey (superuser) !</p>
-    <button id="idbuttonadd" type="button" onclick="onAddUser();">Add</button><button id="idbuttonremove" type="button" onclick="onRemoveUser();">Remove</button><div id="iddivadduser"><br/><input id="idinputusername" type='text' name='username' onblur="validateUser(this);"/>&nbsp;<input type='password' name='password' id="idpassword" onchange="onPasswordChange();"/>&nbsp;<input type='password' name='passwordconfirm' id="idpasswordconfirm" onchange="onPasswordConfirmChange();"/>&nbsp;<input id="idcheckboxsuper" type="checkbox" value="super"/>Super&nbsp;<button id="idbuttonaddconfirm" type="button" onclick="onAddUserConfirm();">Add New User</button><br/><span id="idspanaddmess"></span></div><br/><div id="iddivuserlist"></div><br/><a href="/logout">logout</a>
+    <!-- Contextual user form -->
+    <button type="button" onclick="onAddUser();" id="idbuttonadd">Add</button>
+    <button type="button" onclick="onDelUser();" id="idbuttondel">Delete</button>
+    <div id="iddivadd">
+      <br/>
+      <input type="text" name="username" onblur="validateUser(this);", id="idinputusername"/>&nbsp;
+      <input type="password" name="password" onchange="onPasswordChange();" id="idpassword"/>&nbsp;
+      <input type="password" name="passwordconfirm" onchange="onPasswordConfirmChange();" id="idpasswordconfirm"/>&nbsp;
+      <input type="checkbox" value="super" id="idcheckboxsuper"/><label for="idcheckboxsuper">Super</label>&nbsp;
+      <button type="button" onclick="onAddUserConfirm();" id="idbuttonaddconfirm">Add New User</button>
+      <br/>
+      <span id="idspanmessage"></span>
+    </div>
+    <!-- Contextual user form -->
+    <br/>
+    <div id="iddivuserlist"></div>
+    <br/>
+    <a href="/logout">logout</a>
   </body>
 </html>
