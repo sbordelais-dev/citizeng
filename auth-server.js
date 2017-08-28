@@ -1,11 +1,11 @@
 // Requirements.
-var loginpanel = require('./pass-auth-1.0');
+var citizenserver = require('./pass-auth-1.0');
 
 // Initialize the server.
-const server = loginpanel.init(3030);
+citizenserver.init(3030);
 
 // Declare main page route.
-loginpanel.get("/", function (req, res) {
+citizenserver.get("/", function (req, res) {
   // Super user's page.
   if (req.user.super) {
     res.sendFile((__dirname + "/indexsuper.html"));
@@ -17,9 +17,21 @@ loginpanel.get("/", function (req, res) {
 });
 
 // Declare a reserved page.
-loginpanel.get("/admin", function (req, res) {
+citizenserver.get("/admin", function(req, res) {
   res.send("This may have not effect!");
 });
 
+// Simple message using socket.io method.
+citizenserver.ioset("consolemessage", function(data, ackfunc) {
+  // Log.
+  console.log(data);
+});
+
+// Declare a reserved Socket.io method.
+citizenserver.ioset("useradd", function(data, ackfunc) {
+  // Log.
+  console.log("This may have not effect!");
+});
+
 // Start the server.
-loginpanel.run();
+citizenserver.run();

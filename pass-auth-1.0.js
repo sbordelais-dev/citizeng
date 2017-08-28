@@ -131,6 +131,9 @@ const users = [ {"username":"root"  , "password":"root"   , "super":true}
 // The 'Express' app.
 var app = null;
 
+// Array of Socket.io objects.
+var iofuncs = [];
+
 // Server object.
 const server =  { db:null
                 , http:null
@@ -178,10 +181,10 @@ process.on('SIGINT', () => {
 /* Initialize the server */
 exports.init = function (port) {
   // Already started.
-  if (null != app) return server;
+  if (null != app) return ;
 
   // Create express app.
-  if (null == (app = express())) return server;
+  if (null == (app = express())) return ;
   
   /* ========================= */
   /* Application configuration */
@@ -211,9 +214,6 @@ exports.init = function (port) {
   if (null == (server.io = require('socket.io')(server.http))) {
     // Release server object.
     finalize();
-
-    // Oops.
-    return server;
   }
 
   // Database directory.
@@ -231,13 +231,7 @@ exports.init = function (port) {
   if (null == (server.db = new sqlite3.Database((dbdir + "/users.db")))) {
     // Release server object.
     finalize();
-
-    // Oops.
-    return server;
   }
-
-  // Done.
-  return server;
 }
 
 /* Run the server */
@@ -325,12 +319,6 @@ exports.run = function () {
       console.log("client disconnected");
     });
 
-    /* Simple message. */
-    socket.on("consolemessage", function(data) {
-      // Log.
-      console.log(data);
-    });
-
     /* Check user name. */
     socket.on("userpresent", function(data, ackfn) {
       var query = "SELECT username FROM users WHERE username=\"" + data + "\"";
@@ -400,10 +388,16 @@ exports.run = function () {
         }
       });
     });
+                       
+    // Customized Socket.io functions.
+    for (f in iofuncs) {
+      iofunc = iofuncs[f];
+      socket.on(iofunc.method, iofunc.func);
+    }
   });
 }
 
-/* Custom GET method route. */
+/* Register custom GET method route. */
 exports.get = function(route, func) {
   if (null == app) return ;
 
@@ -425,7 +419,7 @@ exports.get = function(route, func) {
   app.get(route, isLoggedIn, func);
 };
 
-/* Custom POST method route. */
+/* Register custom POST method route. */
 exports.post = function(route, func) {
   if (null == app) return ;
 
@@ -443,4 +437,31 @@ exports.post = function(route, func) {
   
   // Do POST.
   app.post(route, isLoggedIn, func);
+};
+
+/* Register custom Socket.io function */
+exports.ioset = function(method, func) {
+  if ((null == app) || (null == iofuncs)) return ;
+
+  // Reserved.
+  if ((method == null)
+  ||  (method === "useradd")
+  ||  (method === "userdelete")
+  ||  (method === "userlist")
+  ||  (method === "userpresent")) {
+    // Log.
+    console.log("ioset() : Could NOT register Socket.io method " + "'" + method + "' (reserved)");
+
+    // Get out.
+    return ;
+  }
+
+  // Build private Socket.io object...
+  var ioobj = {method:method,func:func};
+
+  // ... and add it to the list.
+  iofuncs.push(ioobj);
+
+  // Log.
+  console.log("ioset() : Registering Socket.io method " + "'" + method + "' (reserved)");
 };
