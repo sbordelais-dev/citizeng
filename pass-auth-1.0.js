@@ -128,7 +128,7 @@ const htmlpath_login  = __dirname + "/html/login.html";
 const users = [ {"username":"root"  , "password":"root"   , "super":true}
               , {"username":"admin" , "password":"admin"  , "super":true}];
 
-// Express app.
+// The 'Express' app.
 var app = null;
 
 // Server object.
@@ -136,7 +136,7 @@ const server =  { db:null
                 , http:null
                 , io:null };
 
-/* Relese server object */
+/* Release server object */
 function finalize() {
   if (null == server) return ;
 
@@ -200,45 +200,9 @@ exports.init = function (port) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  /* =================== */
-  /* Application routers */
-  /* =================== */
-  
-  /* Login page. */
-  app.get("/login", function (req, res) {
-    // Already authenticated.
-    if(req.isAuthenticated()) {
-      res.redirect("/");
-
-      // Log.
-      console.log("already authenticated (" + req.user.username + ", " + req.user.super + ")");
-    }
-    // Not yet authenticated.
-    else {
-      res.sendFile(htmlpath_login);
-    }
-  });
-
-  /* Login post. */
-  app.post("/login", passport.authenticate("local-login", {successRedirect: "/", failureRedirect: "/login"/*, failureFlash: true*/}));
-  
-  /* Logout page. */
-  app.get("/logout", function (req, res) {
-    req.logout();
-    res.redirect("/login");
-  });
-
-  /* Administration page. */
-  app.get("/admin", isLoggedIn, function (req, res) {
-    // Administration page.
-    if (req.user.super) {
-      res.sendFile(htmlpath_admin);
-    }
-    // Forbidden page.
-    else {
-      res.sendFile(htmlpath_forbid);
-    }
-  });
+  /* ==================== */
+  /* Server configuration */
+  /* ==================== */
 
   // Start the HTTP server.
   if (null == (server.http = app.listen(port))) return server;
@@ -284,12 +248,48 @@ exports.run = function () {
   /* =================== */
   /* Application routers */
   /* =================== */
+  
+  /* Login page. */
+  app.get("/login", function (req, res) {
+    // Already authenticated.
+    if(req.isAuthenticated()) {
+      res.redirect("/");
+
+      // Log.
+      console.log("already authenticated (" + req.user.username + ", " + req.user.super + ")");
+    }
+    // Not yet authenticated.
+    else {
+      res.sendFile(htmlpath_login);
+    }
+  });
+
+  /* Login post. */
+  app.post("/login", passport.authenticate("local-login", {successRedirect: "/", failureRedirect: "/login"/*, failureFlash: true*/}));
+
+  /* Logout page. */
+  app.get("/logout", function (req, res) {
+    req.logout();
+    res.redirect("/login");
+  });
+
+  /* Administration page. */
+  app.get("/admin", isLoggedIn, function (req, res) {
+    // Administration page.
+    if (req.user.super) {
+      res.sendFile(htmlpath_admin);
+    }
+    // Forbidden page.
+    else {
+      res.sendFile(htmlpath_forbid);
+    }
+  });
 
   /* The 404 page (Alway keep this as the last route). */
   app.get("*", isLoggedIn, function(req, res){
     res.status(404).sendFile(htmlpath_404);
   });
-  
+
   /* ==================== */
   /* Socket.io management */
   /* ==================== */
@@ -406,7 +406,18 @@ exports.run = function () {
 /* Custom GET method route. */
 exports.get = function(route, func) {
   if (null == app) return ;
-  
+
+  // Reserved routes.
+  if ((route === "/admin")
+  ||  (route === "/login")
+  ||  (route === "/logout")) {
+    // Log.
+    console.log("get() : Could NOT register GET method route " + "'" + route + "' (reserved)");
+
+    // Get out.
+    return ;
+  }
+
   // Log.
   console.log("get() : Registering GET method route " + "'" + route + "'");
   
@@ -417,7 +428,16 @@ exports.get = function(route, func) {
 /* Custom POST method route. */
 exports.post = function(route, func) {
   if (null == app) return ;
-  
+
+  // Reserved routes.
+  if (route === "/login") {
+    // Log.
+    console.log("get() : Could NOT register POST method route " + "'" + route + "' (reserved)");
+    
+    // Get out.
+    return ;
+  }
+
   // Log.
   console.log("post() : Registering POST method route " + "'" + route + "'");
   
