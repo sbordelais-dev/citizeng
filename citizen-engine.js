@@ -55,7 +55,7 @@ function isLoggedIn(req, res, next) {
 
 /* Serialize user object */
 passport.serializeUser(function (user, done) {
- if (null != user) done(null, user.username);
+  if (null != user) done(null, user.username);
 });
 
 /* Deserialize user object. */
@@ -123,10 +123,8 @@ const htmlpath_admin  = __dirname + "/html/admin.html";
 const htmlpath_forbid = __dirname + "/html/forbidden.html";
 const htmlpath_login  = __dirname + "/html/login.html";
 
-
-// Default hardcoded users.
-const users = [ {"username":"root"  , "password":"root"   , "super":true}
-              , {"username":"admin" , "password":"admin"  , "super":true}];
+// Default super users.
+var superusers = [];
 
 // The 'Express' app.
 var app = null;
@@ -179,7 +177,7 @@ process.on('SIGINT', () => {
 /* ================== */
 
 /* Initialize the server */
-exports.init = function (port) {
+exports.init = function(port, username, password) {
   // Already started.
   if (null != app) return ;
 
@@ -214,6 +212,9 @@ exports.init = function (port) {
   if (null == (server.io = require('socket.io')(server.http))) {
     // Release server object.
     finalize();
+
+    // Done.
+    return ;
   }
 
   // Database directory.
@@ -231,7 +232,13 @@ exports.init = function (port) {
   if (null == (server.db = new sqlite3.Database((dbdir + "/users.db")))) {
     // Release server object.
     finalize();
+    
+    // Done.
+    return ;
   }
+  
+  // Add default super user.
+  superusers.push({username:username, password:password, super:true});
 }
 
 /* Run the server */
@@ -300,9 +307,9 @@ exports.run = function () {
     server.db.serialize(function() {
       server.db.run("CREATE TABLE IF NOT EXISTS users (username TEXT UNIQUE, password TEXT, salt TEXT, super INT)");
       var stmt = server.db.prepare("INSERT OR IGNORE INTO users VALUES (?,?,?,?)");
-      for (u in users) {
-        hashedpassword = doHashPassword(users[u].password);
-        stmt.run(users[u].username, hashedpassword.hash, hashedpassword.salt, users[u].super);
+      for (u in superusers) {
+        hashedpassword = doHashPassword(superusers[u].password);
+        stmt.run(superusers[u].username, hashedpassword.hash, hashedpassword.salt, superusers[u].super);
       }
       stmt.finalize();
     });
@@ -457,7 +464,7 @@ exports.ioset = function(method, func) {
   }
 
   // Build private Socket.io object...
-  var ioobj = {method:method,func:func};
+  var ioobj = {method:method, func:func};
 
   // ... and add it to the list.
   iofuncs.push(ioobj);

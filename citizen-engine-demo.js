@@ -2,7 +2,7 @@
 var citizenserver = require('./citizen-engine');
 
 // Initialize the server.
-citizenserver.init(3030);
+citizenserver.init(3030, "root", "root");
 
 // Declare main page route.
 citizenserver.get("/", function (req, res) {
