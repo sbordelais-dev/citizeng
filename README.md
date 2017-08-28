@@ -1,6 +1,10 @@
 # citizen-engine
 
-## Install
+## Features
+
+TODO
+
+## Installation
 
 ```
 # Clone the repository.
@@ -15,3 +19,10 @@ npm install express passport passport-local body-parser express-session sqlite3 
 # Run the demo
 node citizen-engine-demo
 ```
+## How to use
+
+TODO
+
+## License
+
+[MIT](https://github.com/socketio/socket.io/blob/master/LICENSE)
