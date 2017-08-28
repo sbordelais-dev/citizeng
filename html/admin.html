@@ -1,0 +1,324 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Index Page (super user)</title>
+    <script type="text/javascript">
+      /* Initialization function. */
+      function init() {
+        // Reset contextual form.
+        if (null != (ctxuserform.buttonadd        = document.getElementById("idbuttonadd"))) {ctxuserform.buttonadd.disabled = false;}
+        if (null != (ctxuserform.buttonaddconfirm = document.getElementById("idbuttonaddconfirm"))) {ctxuserform.buttonaddconfirm.disabled = true;}
+        if (null != (ctxuserform.buttondel        = document.getElementById("idbuttondel"))) {ctxuserform.buttondel.disabled = true;}
+        if (null != (ctxuserform.checkboxsuper    = document.getElementById("idcheckboxsuper"))) {};
+        if (null != (ctxuserform.divadd           = document.getElementById("iddivadd"))) {ctxuserform.divadd.style.display = "none";}
+        if (null != (ctxuserform.inputusername    = document.getElementById("idinputusername"))) {};
+        if (null != (ctxuserform.password         = document.getElementById("idpassword"))) {};
+        if (null != (ctxuserform.passwordconfirm  = document.getElementById("idpasswordconfirm"))) {};
+        if (null != (ctxuserform.spanmessage      = document.getElementById("idspanmessage"))) {};
+ 
+        // Reset users list.
+        if (null != (divuserlist = document.getElementById("iddivuserlist"))) divuserlist.innerHTML = "";
+      }
+
+      /* Refresh users table. */
+      function refreshUserTable() {
+        // Ask for users list.
+        socket.emit("userlist", "", function(err, rows) {
+          var disabled = "";
+          var divusers = "";
+          checkboxall = null;
+          if (null != err) {
+            alert(err.message);
+          }
+          else {
+            // Build users table.
+            divusers += "<table style=\"border:1px solid black\">";
+            divusers += "<tr><th><input id=\"idcheckboxall\" type=\"checkbox\" name=\"allusers\" value=\"allusers\" onclick=\"onToggleUsers(this);\"></th><th>User Name</th><th>Super User</th></tr>";
+            for (u in rows) {
+              divusers += "<tr>";
+              if (root === rows[u].username) disabled = "disabled"; else disabled = "";
+              divusers += "<td><input id=\"idselect_" + u + "\" type=\"checkbox\" name=\"user\" value=\"" + u + "\" onclick=\"onSelectUser(this);\"" + disabled + ">";
+              divusers += "<td id=\"idusername_" + u + "\">" + rows[u].username + "</td>";
+              divusers += "<td id=\"idusersuper_" + u + "\">" + rows[u].super + "</td>";
+              divusers += "</tr>";
+            }
+            divusers += "</table>";
+
+            // Set the global element here because it just has been created.
+            checkboxall = document.getElementById("idcheckboxall");
+          }
+          divuserlist.innerHTML = divusers;
+        });
+      }
+
+      /* Selected user */
+      function onSelectUser(ithis) {
+        ctxuserform.divadd.style.display = "none";
+
+        // Ask for users list.
+        socket.emit("userlist", "", function(err, rows) {
+          var checked = 0;
+
+          // Not found.
+          if (null != err) {
+            alert(err.message);
+          }
+          // Found.
+          else {
+            var elem = null;
+            for (u in rows) {
+              if (null != (elem = document.getElementById("idselect_" + u)) ) {
+                if (elem.checked) checked++;
+              }
+            }
+          }
+
+          if (0==checked) {
+            ctxuserform.buttonadd.disabled = false;
+            ctxuserform.buttondel.disabled = true;
+          }
+          else {
+            ctxuserform.buttonadd.disabled = true;
+            ctxuserform.buttondel.disabled = false;
+          }
+        });
+      }
+
+      /* Multiple users selection */
+      function onToggleUsers(ithis) {
+        ctxuserform.divadd.style.display = "none";
+
+        // Ask for users list.
+        socket.emit("userlist", "", function(err, rows) {
+          var checked = 0;
+
+          // Not found.
+          if (null != err) {
+            alert(err.message);
+          }
+          // Found.
+          else {
+            var elem = null;
+            for (u in rows) {
+              if (root !== rows[u].username) {
+                if (null != (elem = document.getElementById("idselect_" + u)) ) {
+                  if (elem.checked = ithis.checked) checked++;
+                }
+              }
+            }
+          }
+
+          if (0==checked) {
+            ctxuserform.buttonadd.disabled = false;
+            ctxuserform.buttondel.disabled = true;
+          }
+          else {
+            ctxuserform.buttonadd.disabled = true;
+            ctxuserform.buttondel.disabled = false;
+          }
+        });
+      }
+
+      /* Remove user */
+      function onDelUser() {
+        // Ask for users list.
+        socket.emit("userlist", "", function(err, rows) {
+          // Not found.
+          if (null != err) {
+            alert(err.message);
+          }
+          // Found.
+          else {
+            var elem = null;
+            for (u in rows) {
+              if (null != (elem = document.getElementById("idselect_" + u)) ) {
+                if (elem.checked) {
+                  elem.checked = false;
+                  if (null != (elem = document.getElementById("idusername_" + u)) ) {
+                    socket.emit("userdelete", elem.innerHTML, function(data){
+                      refreshUserTable();
+                    });
+                  }
+                }
+              }
+            }
+          }
+
+          if (null != checkboxall) {checkboxall.checked = false;}
+          ctxuserform.buttonadd.disabled = false;
+          ctxuserform.buttondel.disabled = true;
+        });
+      }
+
+      /* Add user. */
+      function onAddUser() {
+        // Ask for users list.
+        socket.emit("userlist", "", function(err, rows) {
+          // Not found.
+          if (null != err) {
+            alert(err.message);
+          }
+          // Found.
+          else {
+            var elem = null;
+            for (u in rows) {
+              if (null != (elem = document.getElementById("idselect_" + u)) ) {
+                if (elem.checked) {
+                  elem.checked = false;
+                }
+              }
+            }
+          }
+
+          if (null != checkboxall) {checkboxall.checked = false;}
+          ctxuserform.buttonadd.disabled = false;
+          ctxuserform.buttondel.disabled = true;
+
+          // Toggle add form.
+          onDivToggle();
+
+          // Add form is hidden.
+          if (ctxuserform.divadd.style.display === "block") {
+            ctxuserform.checkboxsuper.checked = false;
+            ctxuserform.inputusername.value = "";
+            ctxuserform.password.value = "";
+            ctxuserform.passwordconfirm.value = "";
+            ctxuserform.spanmessage.innerHTML = "";
+          }
+        });
+      }
+
+      /* Show/Hide DIV section. */
+      function onDivToggle() {
+        if (null == ctxuserform.divadd) return ;
+        if (ctxuserform.divadd.style.display === "none") {
+          ctxuserform.divadd.style.display = "block";
+        } else {
+          ctxuserform.divadd.style.display = "none";
+        }
+      }
+
+      /* Check user presence */
+      function validateUser(ithis) {
+        if (0<ithis.value.length) {
+          // Ask for users list.
+          socket.emit("userlist", "", function(err, rows) {
+            ctxuserform.buttonaddconfirm.disabled = true;
+            // Not found.
+            if (null != err) {
+              alert(err.message);
+            }
+            // Found.
+            else {
+              var elem = null;
+              var found = false;
+              for (u in rows) {
+                if (null != (elem = document.getElementById("idusername_" + u)) ) {
+                  if (elem.innerHTML === ithis.value) found = true;
+                }
+              }
+            }
+
+            // User found.
+            if (found) {
+              ctxuserform.buttonaddconfirm.disabled = true;
+              ctxuserform.spanmessage.innerHTML = "!! Existing user name '" + ithis.value + "' !!";
+            }
+            // User not found.
+            else {
+              ctxuserform.buttonaddconfirm.disabled = false;
+              ctxuserform.spanmessage.innerHTML = "";
+            }
+          });
+        }
+        else {
+          ctxuserform.buttonaddconfirm.disabled = true;
+        }
+      }
+
+      /* Confirm user add. */
+      function onAddUserConfirm() {
+        if (ctxuserform.password.value !== ctxuserform.passwordconfirm.value) {
+          ctxuserform.buttonaddconfirm.disabled = true;
+          ctxuserform.spanmessage.innerHTML = "!! Password does not match !!";
+        }
+        else {
+          // Hide section.
+          onDivToggle();
+
+          // Build new user object.
+          var newuser = { username:ctxuserform.inputusername.value
+                        , password:ctxuserform.password.value
+                        , super:(ctxuserform.checkboxsuper.checked)};
+
+          // Ask for adding new user.
+          socket.emit("useradd", newuser, function(data){
+            refreshUserTable();
+          });
+
+          // Reset contextual form.
+          ctxuserform.buttonaddconfirm.disabled = false;
+          ctxuserform.inputusername.value = "";
+          ctxuserform.password.value = "";
+          ctxuserform.passwordconfirm.value = "";
+          ctxuserform.spanmessage.innerHTML = "";
+        }
+      }
+
+      /* On password changed function. */
+      function onPasswordChange() {
+        ctxuserform.buttonaddconfirm.disabled = false;
+      }
+
+      /* On password confirmed function. */
+      function onPasswordConfirmChange() {
+        ctxuserform.buttonaddconfirm.disabled = false;
+      }
+    </script>
+  </head>
+  <body onload="init();">
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+      /* Global variables. */
+      const root = "root";
+      var ctxuserform = { buttonadd:null
+                        , buttonaddconfirm:null
+                        , buttonrmv:null
+                        , checkboxsuper:null
+                        , inputusername:null
+                        , password:null
+                        , passwordconfirm:null
+                        , spanmessage:null };
+
+      var checkboxall = null;
+      var divuserlist = null;
+      var socket = io.connect();
+
+      /* Socket connection callback. */
+      socket.on("connect", function(data) {
+        socket.emit("consolemessage", "::io client:: Bonjour super user !!");
+        refreshUserTable();
+      });
+    </script>
+    <p>Hey (superuser) !</p>
+    <!-- Contextual user form -->
+    <button type="button" onclick="onAddUser();" id="idbuttonadd">Add</button>
+    <button type="button" onclick="onDelUser();" id="idbuttondel">Delete</button>
+    <div id="iddivadd">
+      <br/>
+      <input type="text" name="username" onblur="validateUser(this);", id="idinputusername"/>&nbsp;
+      <input type="password" name="password" onchange="onPasswordChange();" id="idpassword"/>&nbsp;
+      <input type="password" name="passwordconfirm" onchange="onPasswordConfirmChange();" id="idpasswordconfirm"/>&nbsp;
+      <input type="checkbox" value="super" id="idcheckboxsuper"/><label for="idcheckboxsuper">Super</label>&nbsp;
+      <button type="button" onclick="onAddUserConfirm();" id="idbuttonaddconfirm">Add New User</button>
+      <br/>
+      <span id="idspanmessage"></span>
+    </div>
+    <!-- Contextual user form -->
+    <br/>
+    <div id="iddivuserlist"></div>
+    <br/>
+    <a href="/logout">logout</a>
+  </body>
+</html>
