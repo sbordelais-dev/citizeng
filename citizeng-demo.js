@@ -1,11 +1,11 @@
 // Requirements.
-var citizenserver = require('./citizen-engine');
+var citizengserver = require('./citizeng');
 
 // Initialize the server.
-citizenserver.init(3030, "root", "root");
+citizengserver.init(3030, "root", "root");
 
 // Declare main page route.
-citizenserver.get("/", function (req, res) {
+citizengserver.get("/", function (req, res) {
   // Super user's page.
   if (req.user.super) {
     res.sendFile((__dirname + "/indexsuper.html"));
@@ -17,21 +17,21 @@ citizenserver.get("/", function (req, res) {
 });
 
 // Declare a reserved page.
-citizenserver.get("/admin", function(req, res) {
+citizengserver.get("/admin", function(req, res) {
   res.send("This may have not effect!");
 });
 
 // Simple message using socket.io method.
-citizenserver.ioset("consolemessage", function(data, ackfunc) {
+citizengserver.ioset("consolemessage", function(data, ackfunc) {
   // Log.
   console.log(data);
 });
 
 // Declare a reserved Socket.io method.
-citizenserver.ioset("useradd", function(data, ackfunc) {
+citizengserver.ioset("useradd", function(data, ackfunc) {
   // Log.
   console.log("This may have not effect!");
 });
 
 // Start the server.
-citizenserver.run();
+citizengserver.run();
