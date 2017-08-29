@@ -120,7 +120,6 @@ var connectedusers = 0;
 // HTML pages to render.
 const htmlpath_404    = __dirname + "/html/404.html";
 const htmlpath_admin  = __dirname + "/html/admin.html";
-const htmlpath_forbid = __dirname + "/html/forbidden.html";
 const htmlpath_login  = __dirname + "/html/login.html";
 
 // Default super users.
@@ -282,7 +281,7 @@ exports.run = function () {
     }
     // Forbidden page.
     else {
-      res.sendFile(htmlpath_forbid);
+      res.status(404).sendFile(htmlpath_404);
     }
   });
 
