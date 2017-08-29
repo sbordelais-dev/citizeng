@@ -1,4 +1,4 @@
-# citizen-engine
+# citizeng
 
 ## Features
 
@@ -8,7 +8,7 @@ TODO
 
 ```
 # Clone the repository.
-git clone https://github.com/LordHadder/citizen-engine.git mydir
+git clone https://github.com/LordHadder/citizeng.git mydir
 
 # Go the cloned repository.
 cd mydir
@@ -17,7 +17,7 @@ cd mydir
 npm install express passport passport-local body-parser express-session sqlite3 socket.io --save
 
 # Run the demo
-node citizen-engine-demo
+node citizeng-demo
 ```
 ## How to use
 
