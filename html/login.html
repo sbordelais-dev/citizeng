@@ -4,27 +4,46 @@
     <meta charset="UTF-8" />
     <title>Login Page</title>
   </head>
-  <body onload="init();">
+  <body onload="init()">
     <p>Please login!</p>
     <div>
-      <form method='post' action='/login' onsubmit="onSubmit()">
-        <input type='text' name='username' onblur="validateUser(this)" id="idinputusername"/>&nbsp;User<br/>
-        <input type='password' name='password'/>&nbsp;Password<br/>
+      <form method="post" action="/login" onsubmit="return validateBeforeSubmit();">
+        <input type="text" name="username" onblur="validateUser(this)" id="idinputusername"/>&nbsp;User<br/>
+        <input type="password" name="password" onblur="validatePassword(this)" id="idpassword"/>&nbsp;Password<br/>
+        <div id="iddivpasswordnew" style="display:none;">
+          <br/>
+          <input type="password" name="newpassword" id="idnewpassword" onblur="newPasswordChange()"/>&nbsp;New Password<br/>
+          <input type="password" name="newpasswordconfirm" id="idnewpasswordconfirm" onblur="newPasswordConfirmChange()"/>&nbsp;Confirm Password<br/>
+          <br/>
+        </div>
         <input type="submit" value="LogIn" id="idbuttonlogin"/>
       </form>
+      <button onclick="togglePasswordChange()" id="idbuttonpasswordchange">Change Password</button>
     </div>
     <p><span id="idspanloginmess"></span></p>
+    <!-- Script -->
     <script src="../js/common.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
       /* Global variables. */
+      var ctxloginform =  { buttonpasswordchange:null
+                          , divpasswordnew:null
+                          , passwordnew:null
+                          , passwordnewconfirm:null};
       var buttonlogin = null;
       var spanloginmess = null;
       var inputusername = null;
+      var password = null;
       var socket = io.connect();
 
       /* Initialization function. */
       function init() {
+        // Reset contextual form.
+        if (null != (ctxloginform.buttonpasswordchange  = document.getElementById("idbuttonpasswordchange"))) {ctxloginform.buttonpasswordchange.disabled = true;}
+        if (null != (ctxloginform.divpasswordnew        = document.getElementById("iddivpasswordnew"))) {ctxloginform.divpasswordnew.style.display = "none";}
+        if (null != (ctxloginform.passwordnew           = document.getElementById("idnewpassword"))) {ctxloginform.passwordnew.value = "";}
+        if (null != (ctxloginform.passwordnewconfirm    = document.getElementById("idnewpasswordconfirm"))) {ctxloginform.passwordnewconfirm.value = "";}
+
         // Set login button element.
         if (null != (buttonlogin = document.getElementById("idbuttonlogin"))) {
           buttonlogin.disabled = true;
@@ -36,7 +55,14 @@
         }
         
         // Set user name input element.
-        inputusername = document.getElementById("idinputusername");
+        if (null != (inputusername = document.getElementById("idinputusername"))) {
+          inputusername.value = "";
+        }
+
+        // Set user password element.
+        if (null != (password = document.getElementById("idpassword"))) {
+          password.value = "";
+        }
       }
 
       /* User name validation function. */
@@ -45,6 +71,7 @@
         if (0 < ithis.value.length) {
           buttonlogin.disabled = true;
           spanloginmess.innerHTML = "";
+          ctxloginform.buttonpasswordchange.disabled = true;
 
           // Check user name is registered.
           socket.emit("userpresent", ithis.value, function(err, row) {
@@ -55,20 +82,83 @@
             // User found.
             else {
               buttonlogin.disabled = false;
+              ctxloginform.buttonpasswordchange.disabled = false;
+              ctxloginform.passwordnew.disabled = false;
+              ctxloginform.passwordnewconfirm.disabled = false;
             }
           });
         }
         // Field is empty.
         else {
           buttonlogin.disabled = true;
+          ctxloginform.buttonpasswordchange.disabled = true;
+          ctxloginform.passwordnew.disabled = true;
+          ctxloginform.passwordnewconfirm.disabled = true;
         }
       }
 
-      /* Submit function */
-      function onSubmit() {
-        // Save user name in a cookie.
-        setCookie("citizeng-whoami", inputusername.value);
+      /* User password validation function. */
+      function validatePassword(ithis) {
+        // Field is not empty.
+        if (0 < ithis.value.length) {
+          buttonlogin.disabled = false;
+          ctxloginform.buttonpasswordchange.disabled = false;
+          ctxloginform.passwordnew.disabled = false;
+          ctxloginform.passwordnewconfirm.disabled = false;
+          spanloginmess.innerHTML = "";
+        }
+        // Field is empty.
+        else {
+          buttonlogin.disabled = true;
+          ctxloginform.buttonpasswordchange.disabled = true;
+          ctxloginform.passwordnew.disabled = true;
+          ctxloginform.passwordnewconfirm.disabled = true;
+          spanloginmess.innerHTML = "!! Password field is empty !!";
+        }
+      }
+
+      /* Vaidation function */
+      function validateBeforeSubmit() {
+        if (ctxloginform.passwordnew.value !== ctxloginform.passwordnewconfirm.value) {
+          ctxloginform.passwordnew.value = "";
+          ctxloginform.passwordnewconfirm.value = "";
+          spanloginmess.innerHTML = "!! New password does not match !!";
+        }
+        else {
+          // Password field is empty.
+          if (0 == password.value.length) {
+            spanloginmess.innerHTML = "!! Password field is empty !!";
+          }
+          else {
+            // Save user name in a cookie.
+            setCookie("citizeng-whoami", inputusername.value);
+
+            // Ok.
+            return true;
+          }
+        }
+
+        // Oops.
+        return false;
+      }
+
+      /* Toggle function */
+      function togglePasswordChange() {
+        toggleDiv(iddivpasswordnew);
+        ctxloginform.passwordnew.value = "";
+        ctxloginform.passwordnewconfirm.value = "";
+      }
+
+      /* New password changed function. */
+      function newPasswordChange() {
+        ctxloginform.buttonpasswordchange.disabled = false;
+      }
+
+      /* New password confirmed function. */
+      function newPasswordConfirmChange() {
+        ctxloginform.buttonpasswordchange.disabled = false;
       }
     </script>
+    <!-- Script -->
   </body>
 </html>

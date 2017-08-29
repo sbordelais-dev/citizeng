@@ -1,3 +1,31 @@
+/* Generate random string */
+function generateString(len) {
+  var string = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  
+  for (var i = 0; i < len; i++) {
+    string += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+
+  // Done.
+  return string;
+}
+
+/* Show/Hide DIV section. */
+function toggleDiv(divelem, blockornone) {
+  if (null == divelem) return ;
+  if (blockornone) {
+    divelem.style.display = blockornone;
+  }
+  else {
+    if (divelem.style.display === "none") {
+      divelem.style.display = "block";
+    } else {
+      divelem.style.display = "none";
+    }
+  }
+}
+
 /* Set cookie function. */
 function setCookie(cname, cvalue, exdays) {
   var cookie = cname + "=" + cvalue;

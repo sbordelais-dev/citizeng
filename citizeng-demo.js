@@ -16,7 +16,7 @@ citizengserver.get("/", function (req, res) {
   }
 });
 
-// Declare a reserved page.
+// Declare a reserved page route.
 citizengserver.get("/admin", function(req, res) {
   res.send("This may have not effect!");
 });

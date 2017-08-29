@@ -49,6 +49,48 @@ function isLoggedIn(req, res, next) {
   console.log("Unauthorized access !");
 }
 
+/* Update user password. */
+function changePasswordInDatabase(db, username, newpassword, done) {
+  if ((null == db) || (null == done)) return ;
+  if ((null == username) || (0 == username.length)) return ;
+  if ((null == newpassword) || (0 == newpassword.length)) return ;
+
+  // Look for salt.
+  var query = "SELECT salt FROM users WHERE username=\"" + username + "\"";
+  db.get(query, function(err, row) {
+    // Not found.
+    if (err) {
+      done({message:err.message});
+
+      // Oops.
+      return ;
+    }
+
+    // Log.
+    console.log("changePasswordInDatabase() : " + "'" + query + "'");
+
+    // Hash new password.
+    var newPasswordData = sha512(newpassword, row.salt);
+
+    // Replace password.
+    query = "UPDATE users SET password=\"" + newPasswordData.hash + "\" WHERE username=\"" + username + "\"";
+    db.run(query, function(err) {
+      if (err) {
+        done({message:err.message});
+
+        // Oops.
+        return ;
+      }
+
+      // Ok.
+      done(null);
+
+      // Log.
+      console.log("changePasswordInDatabase() : " + "'" + query + "'");
+    });
+  });
+}
+
 /* ================== */
 /* Passport functions */
 /* ================== */
@@ -61,19 +103,17 @@ passport.serializeUser(function (user, done) {
 /* Deserialize user object. */
 passport.deserializeUser(function (username, done) {
   var query = "SELECT username, super, master FROM users WHERE username=\"" + username + "\"";
-  server.db.all(query, function(err, row) {
+  server.db.get(query, function(err, row) {
     // Not found.
     if (err) return done({message:err.message});
 
-    var theone = null;
-
     // Found.
-    if ((null != row) && (null != (theone = row[0])) && (username === theone.username)) {
+    if ((null != row) && (username === row.username)) {
       // Log.
       console.log("passport.deserializeUser() : '" + query + "'");
 
       // Done.
-      return done(null, theone);
+      return done(null, row);
     }
 
     // Oops.
@@ -84,24 +124,22 @@ passport.deserializeUser(function (username, done) {
 /* Passport local strategy for local-login. */
 passport.use('local-login', new LocalStrategy(function (username, password, done) {
   var query = "SELECT username, password, salt, super FROM users WHERE username=\"" + username + "\"";
-  server.db.all(query, function(err, row) {
+  server.db.get(query, function(err, row) {
     // Not found.
     if (err) return done({message:err.message});
 
-    var theone = null;
-
     // Found.
-    if ((null != row) && (null != (theone = row[0]))) {
+    if (null != row) {
       // Hash password.
-      var passwordData = sha512(password, theone.salt);
+      var passwordData = sha512(password, row.salt);
 
       // Compare.
-      if (passwordData.hash === theone.password) {
+      if (passwordData.hash === row.password) {
         // Log.
         console.log("passport.use() : '" + query + "'");
 
         // Done.
-        return done(null, theone);
+        return done(null, row);
       }
     }
 
@@ -202,7 +240,10 @@ exports.init = function(port, username, password) {
   
   /* Authorize script directory. */
   app.use("/js", express.static((__dirname + "/js")));
-  
+
+  /* Authorize style directory. */
+  app.use("/css", express.static((__dirname + "/css")));
+
   /* ==================== */
   /* Server configuration */
   /* ==================== */
@@ -252,10 +293,10 @@ exports.run = function () {
   /* Application routers */
   /* =================== */
   
-  /* Login page. */
+  /* Login route. */
   app.get("/login", function (req, res) {
     // Already authenticated.
-    if(req.isAuthenticated()) {
+    if (req.isAuthenticated()) {
       res.redirect("/");
 
       // Log.
@@ -267,10 +308,32 @@ exports.run = function () {
     }
   });
 
-  /* Login post. */
-  app.post("/login", passport.authenticate("local-login", {successRedirect: "/", failureRedirect: "/login"/*, failureFlash: true*/}));
+  /* Login post route. */
+  app.post("/login", function(req, res, next) {
+    // Need to update password.
+    if ((null != req.body.newpassword) && (0 < req.body.newpassword.length)) {
+      changePasswordInDatabase(server.db, req.body.username, req.body.newpassword, function(err){
+        if (null != err) {
+          console.log(err.message);
+                          
+          // Return to login page.
+          res.sendFile(htmlpath_login);
 
-  /* Logout page. */
+          // Oops.
+          return ;
+        }
+        else {
+          // Swap password.
+          req.body.password = req.body.newpassword;
+        }
+      });
+    }
+
+    // Do passport.
+    passport.authenticate("local-login", {successRedirect: "/", failureRedirect: "/login"/*, failureFlash: true*/})(req, res, next);
+  });
+
+  /* Logout route. */
   app.get("/logout", function (req, res) {
     req.logout();
     res.redirect("/login");
@@ -288,7 +351,7 @@ exports.run = function () {
     }
   });
 
-  /* The 404 page (Alway keep this as the last route). */
+  /* The 404 route (Alway keep this as the last route). */
   app.get("*", isLoggedIn, function(req, res){
     res.status(404).sendFile(htmlpath_404);
   });
@@ -397,7 +460,12 @@ exports.run = function () {
         }
       });
     });
-                       
+
+    /* Change user password. */
+    socket.on("userchangepassword", function(data, ackfn) {
+      changePasswordInDatabase(server.db, data.username, data.newpassword, ackfn)
+    });
+
     // Customized Socket.io functions.
     for (f in iofuncs) {
       iofunc = iofuncs[f];
