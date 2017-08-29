@@ -1,5 +1,7 @@
 # citizeng
 
+Server frond-end for authenticated Web services. 
+
 ## Features
 
 TODO
