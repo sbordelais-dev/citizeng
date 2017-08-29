@@ -8,6 +8,14 @@ TODO
 
 ## Installation
 
+### Default installation
+
+```
+npm install citizeng
+```
+
+### Installation for development
+
 ```
 # Clone the repository.
 git clone https://github.com/LordHadder/citizeng.git mydir
@@ -18,9 +26,10 @@ cd mydir
 # Install required modules.
 npm install express passport passport-local body-parser express-session sqlite3 socket.io --save
 
-# Run the demo
+# Run the demo.
 node citizeng-demo
 ```
+
 ## How to use
 
 TODO
