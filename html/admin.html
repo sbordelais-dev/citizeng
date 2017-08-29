@@ -6,6 +6,10 @@
     <script type="text/javascript">
       /* Initialization function. */
       function init() {
+        // User name from cookie.
+        whoami = getCookie("citizeng-whoami");
+        document.getElementById("idwohami").innerHTML = whoami;
+
         // Reset contextual form.
         if (null != (ctxuserform.buttonadd        = document.getElementById("idbuttonadd"))) {ctxuserform.buttonadd.disabled = false;}
         if (null != (ctxuserform.buttonaddconfirm = document.getElementById("idbuttonaddconfirm"))) {ctxuserform.buttonaddconfirm.disabled = true;}
@@ -37,7 +41,7 @@
             divusers += "<tr><th><input id=\"idcheckboxall\" type=\"checkbox\" name=\"allusers\" value=\"allusers\" onclick=\"onToggleUsers(this);\"></th><th>User Name</th><th>Super User</th></tr>";
             for (u in rows) {
               divusers += "<tr>";
-              if (root === rows[u].username) disabled = "disabled"; else disabled = "";
+              if ((0 != rows[u].master) || (whoami === rows[u].username)) disabled = "disabled"; else disabled = "";
               divusers += "<td><input id=\"idselect_" + u + "\" type=\"checkbox\" name=\"user\" value=\"" + u + "\" onclick=\"onSelectUser(this);\"" + disabled + ">";
               divusers += "<td id=\"idusername_" + u + "\">" + rows[u].username + "</td>";
               divusers += "<td id=\"idusersuper_" + u + "\">" + rows[u].super + "</td>";
@@ -101,7 +105,7 @@
           else {
             var elem = null;
             for (u in rows) {
-              if (root !== rows[u].username) {
+              if ((0 == rows[u].master) && (whoami !== rows[u].username)) {
                 if (null != (elem = document.getElementById("idselect_" + u)) ) {
                   if (elem.checked = ithis.checked) checked++;
                 }
@@ -277,11 +281,11 @@
       }
     </script>
   </head>
-  <body onload="init();">
+  <body onload="init()">
+    <script src="../js/common.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
       /* Global variables. */
-      const root = "root";
       var ctxuserform = { buttonadd:null
                         , buttonaddconfirm:null
                         , buttonrmv:null
@@ -294,6 +298,7 @@
       var checkboxall = null;
       var divuserlist = null;
       var socket = io.connect();
+      var whoami = "";
 
       /* Socket connection callback. */
       socket.on("connect", function(data) {
@@ -301,7 +306,7 @@
         refreshUserTable();
       });
     </script>
-    <p>Hey (superuser) !</p>
+    <p>Hi superuser <span id="idwohami" style="font-weight:bold;"></span>!</p>
     <!-- Contextual user form -->
     <button type="button" onclick="onAddUser();" id="idbuttonadd">Add</button>
     <button type="button" onclick="onDelUser();" id="idbuttondel">Delete</button>

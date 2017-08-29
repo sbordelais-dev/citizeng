@@ -4,25 +4,37 @@
     <meta charset="UTF-8" />
     <title>Index Page (basic user)</title>
     <script type="text/javascript">
-      /* Simple function to play with socket.io. */
-      function onPing() {
-        socket.emit("consolemessage", "::io client:: onPing() !!");
-      }
+
     </script>
   </head>
-  <body>
+  <body onload="init()">
+    <p>Hey <span id="idwohami" style="font-weight:bold;"></span>!</p>
+    <p><a href="#" onclick="onPing()">ping</a></p>
+    <a href="/admin">admin</a>&nbsp;&nbsp;<a href="/logout">logout</a>
+    <!-- Script -->
+    <script src="./js/common.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
       /* Global variables. */
       var socket = io.connect();
+      var whoami = "";
+
+      /* Initialization function. */
+      function init() {
+        whoami = getCookie("citizeng-whoami");
+        document.getElementById("idwohami").innerHTML = whoami;
+      }
+
+      /* Simple function to play with socket.io. */
+      function onPing() {
+        socket.emit("consolemessage", "::io client:: onPing() !!");
+      }
 
       /* Socket connection callback. */
       socket.on("connect", function(data) {
         socket.emit("consolemessage", "::io client:: Bonjour !!");
       });
-      </script>
-    <p>Hey !</p>
-    <p><a href="#" onclick="onPing();">ping</a></p>
-    <a href="/admin">admin</a>&nbsp;&nbsp;<a href="/logout">logout</a>
+    </script>
+    <!-- Script -->
   </body>
 </html>

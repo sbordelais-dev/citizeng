@@ -60,7 +60,7 @@ passport.serializeUser(function (user, done) {
 
 /* Deserialize user object. */
 passport.deserializeUser(function (username, done) {
-  var query = "SELECT username, super FROM users WHERE username=\"" + username + "\"";
+  var query = "SELECT username, super, master FROM users WHERE username=\"" + username + "\"";
   server.db.all(query, function(err, row) {
     // Not found.
     if (err) return done({message:err.message});
@@ -123,7 +123,7 @@ const htmlpath_admin  = __dirname + "/html/admin.html";
 const htmlpath_login  = __dirname + "/html/login.html";
 
 // Default super users.
-var superusers = [];
+var masterusers = [];
 
 // The 'Express' app.
 var app = null;
@@ -199,7 +199,10 @@ exports.init = function(port, username, password) {
   }));
   app.use(passport.initialize());
   app.use(passport.session());
-
+  
+  /* Authorize script directory. */
+  app.use("/js", express.static((__dirname + "/js")));
+  
   /* ==================== */
   /* Server configuration */
   /* ==================== */
@@ -237,7 +240,7 @@ exports.init = function(port, username, password) {
   }
   
   // Add default super user.
-  superusers.push({username:username, password:password, super:true});
+  masterusers.push({username:username, password:password, super:true, master:1});
 }
 
 /* Run the server */
@@ -304,11 +307,11 @@ exports.run = function () {
 
     // Database.
     server.db.serialize(function() {
-      server.db.run("CREATE TABLE IF NOT EXISTS users (username TEXT UNIQUE, password TEXT, salt TEXT, super INT)");
-      var stmt = server.db.prepare("INSERT OR IGNORE INTO users VALUES (?,?,?,?)");
-      for (u in superusers) {
-        hashedpassword = doHashPassword(superusers[u].password);
-        stmt.run(superusers[u].username, hashedpassword.hash, hashedpassword.salt, superusers[u].super);
+      server.db.run("CREATE TABLE IF NOT EXISTS users (username TEXT UNIQUE, password TEXT, salt TEXT, super INT, master INT)");
+      var stmt = server.db.prepare("INSERT OR IGNORE INTO users VALUES (?,?,?,?,?)");
+      for (u in masterusers) {
+        hashedpassword = doHashPassword(masterusers[u].password);
+        stmt.run(masterusers[u].username, hashedpassword.hash, hashedpassword.salt, masterusers[u].super, masterusers[u].master);
       }
       stmt.finalize();
     });
@@ -348,7 +351,7 @@ exports.run = function () {
 
     /* List users. */
     socket.on("userlist", function(data, ackfn) {
-      var query = "SELECT username, super FROM users";
+      var query = "SELECT username, super, master FROM users";
       server.db.all(query, function(err, rows) {
         if (err) {
           ackfn({message:err.message});
@@ -365,7 +368,7 @@ exports.run = function () {
     /* Add user. */
     socket.on("useradd", function(data, ackfn) {
       var passwddata = doHashPassword(data.password);
-      var query = "INSERT INTO users VALUES (\"" + data.username + "\",\"" + passwddata.hash + "\",\"" + passwddata.salt + "\"," + ((data.super)?1:0) + ")";
+      var query = "INSERT INTO users VALUES (\"" + data.username + "\",\"" + passwddata.hash + "\",\"" + passwddata.salt + "\"," + ((data.super)?1:0) + ", 0)";
       server.db.run(query, function(err) {
         if (err) {
           ackfn({message:err.message});

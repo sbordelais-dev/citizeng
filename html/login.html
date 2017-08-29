@@ -3,62 +3,72 @@
   <head>
     <meta charset="UTF-8" />
     <title>Login Page</title>
+  </head>
+  <body onload="init();">
+    <p>Please login!</p>
+    <div>
+      <form method='post' action='/login' onsubmit="onSubmit()">
+        <input type='text' name='username' onblur="validateUser(this)" id="idinputusername"/>&nbsp;User<br/>
+        <input type='password' name='password'/>&nbsp;Password<br/>
+        <input type="submit" value="LogIn" id="idbuttonlogin"/>
+      </form>
+    </div>
+    <p><span id="idspanloginmess"></span></p>
+    <script src="../js/common.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
+      /* Global variables. */
+      var buttonlogin = null;
+      var spanloginmess = null;
+      var inputusername = null;
+      var socket = io.connect();
+
       /* Initialization function. */
       function init() {
-        if (null == idbuttonlogin) {
-          if (null != (idbuttonlogin = document.getElementById("idbuttonlogin"))) {
-            idbuttonlogin.disabled = true;
-          }
+        // Set login button element.
+        if (null != (buttonlogin = document.getElementById("idbuttonlogin"))) {
+          buttonlogin.disabled = true;
         }
-        if (null == idspanloginmess) {
-          if (null != (idspanloginmess = document.getElementById("idspanloginmess"))) {
-            idspanloginmess.innerHTML = "";
-          }
+        
+        // Set message span element.
+        if (null != (spanloginmess = document.getElementById("idspanloginmess"))) {
+          spanloginmess.innerHTML = "";
         }
+        
+        // Set user name input element.
+        inputusername = document.getElementById("idinputusername");
       }
 
       /* User name validation function. */
       function validateUser(ithis) {
         // Field is not empty.
         if (0 < ithis.value.length) {
-          idbuttonlogin.disabled = true;
-          idspanloginmess.innerHTML = "";
+          buttonlogin.disabled = true;
+          spanloginmess.innerHTML = "";
+
           // Check user name is registered.
           socket.emit("userpresent", ithis.value, function(err, row) {
             // User not found.
             if (null != err) {
-              idspanloginmess.innerHTML = (0 < err.message.length)? (err.message) : ("!!? Bad response for '" + ithis.value + "' ?!!");
+              spanloginmess.innerHTML = (0 < err.message.length)? (err.message) : ("!!? Bad response for '" + ithis.value + "' ?!!");
             }
             // User found.
             else {
-              idbuttonlogin.disabled = false;
+              buttonlogin.disabled = false;
             }
           });
         }
         // Field is empty.
         else {
-          idbuttonlogin.disabled = true;
+          buttonlogin.disabled = true;
         }
       }
+
+      /* Submit function */
+      function onSubmit() {
+        // Save user name in a cookie.
+        setCookie("citizeng-whoami", inputusername.value);
+      }
     </script>
-  </head>
-  <body onload="init();">
-    <script src="/socket.io/socket.io.js"></script>
-    <script type="text/javascript">
-      /* Global variables. */
-      var idbuttonlogin = null;
-      var idspanloginmess = null;
-      var socket = io.connect();
-      </script>
-      <p>Please login!</p>
-      <div>
-        <form method='post' action='/login'>
-          <input type='text' name='username' onblur="validateUser(this);"/>
-          <input type='password' name='password'/>
-          <button type="submit" value="submit" id="idbuttonlogin">Login</button>
-        </form>
-      </div>
-      <p><span id="idspanloginmess"></span></p>
   </body>
 </html>
