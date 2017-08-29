@@ -27,7 +27,7 @@
 
       /* Simple function to play with socket.io. */
       function onPing() {
-        socket.emit("consolemessage", "::io client:: onPing() !!");
+        socket.emit("consolemessage", "::io client:: onPing() from '" + whoami + "' !!");
       }
 
       /* Socket connection callback. */
