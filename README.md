@@ -1,12 +1,32 @@
 # citizeng
-A turnkey user-password-based framework to create an authenticated HTTP-server. 
+A turnkey username-password framework to create an authenticated HTTP-server. 
 ## Purpose
 This project provides a parent HTTP-server class users can derive from to build authenticated Web services. It is supposed to be used on a **small** and **local network**. A particular attention is paid to ensure it can run easily on small devices (more particularly on a [Raspberry pi](https://www.raspberrypi.org/) system).
 ## Features
-* Use [PassportJS](http://passportjs.org/) as an authentication framework.
+* Easy to integrate: just concentrate on your server design!
+* Use [Passport](http://passportjs.org/) as an authentication method (*'passport-local'* strategy).
 * Support real-time HTML rendering thanks to [socket.io](https://socket.io/) framework.
 * Simple and lightweight users management using [sqlite3](https://www.npmjs.com/package/sqlite3) database.
-* Offer basic users management: list, add, remove users and password change.
+* Offer basic users management: list, add, remove and password change.
+## Overview
+### What do the framework provide?
+It provides only tree routes: `/login`, `/admin` and `/404`.
+
+* The `/login` route presents a basic username/password login interface. This is where unhauthenticated users will be redirected to. Here the user could connect to the server and/or change its password on the fly.
+
+* The `/admin` route presents a elementary users administration interface. This is where authorized users will be able to interact with the users database.
+
+* The `/404` route provide a fordidden access page when the user try to access an non-authorized service (because it does not exist or because the user does not hav the right to access it).
+### Users type
+This framework considers tree types of users, depending on their server access:
+1. `basic` user
+It is the default user. It will access default services. It may not be able to reach user administration service (`/admin` route).
+2. `super` user
+It is an administrator user. It can reach `/admin` route.
+3. `master` user
+Even if is the top-level-ever user type, it remains anecdotic because it is simply a `super` user (declared when inializing the server) that cannot be removed during the session.
+
+> Note: A `basic` user can be removed from the users database by any `super` user. The `master` user cannot be removed from the users database.
 ## Installation
 ### Default installation
 ```Shell
