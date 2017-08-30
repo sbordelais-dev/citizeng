@@ -20,16 +20,16 @@ The framework provides only tree static routes: `/login`, `/admin` and `/404`.
 
 > Note : Theses routes are said to be **reserved**.
 
-The framework provides a way to dynamically render services too thanks to the `socket.io` framework. The following routes are used for internal use:
+The framework provides a way to dynamically render services too thanks to the `socket.io` framework. The following routes are used for internal purpose:
 
-* The `connect`()/`disconnect` routes are use to respectively open/close the `socket.io` connection.
+* The `connect`, `connection`/`disconnect` routes are use to respectively open/close the `socket.io` connection.
 
 * The `userpresent`, `userlist`, `useradd`, `userdelete` and `userchangepassword` are used to manage users database.
 
 > Note : Theses routes are said to be **reserved**, too.
 
 ### Users type
-This framework considers tree types of users, depending on their given access right :
+This framework considers **tree types of users**, depending on their given access right :
 1. `basic` user : it is the default user. It will access default services. It may not be able to reach user administration service (`/admin` route).
 2. `super` user : it is an administrator user. It can reach `/admin` route.
 3. `master` user : even if is the top-level-ever user type, it remains anecdotic because it is simply a `super` user (declared when inializing the server) that cannot be removed during the session.
@@ -84,7 +84,7 @@ citizeng.get("/admin", function(req, res) {
   res.send("This may have not effect!");
 });
 ```
-The following example shows how a to use the `socket.io` layer to render dynamically a service.
+The following example shows how to use the `socket.io` layer to render dynamically a service.
 ```JavaScript
 /* On client side, Emit a simple message. */
 var socket = io.connect();
@@ -96,7 +96,7 @@ citizeng.ioset("consolemessage", function(data, ackfunc) {
   console.log(data);
 });
 ```
-Declaring a **reserved** socket.io route may have no effect.
+Declaring a **reserved** `socket.io` route may have no effect.
 ```JavaScript
 citizeng.ioset("useradd", function(data, ackfunc) {
   // Log.
