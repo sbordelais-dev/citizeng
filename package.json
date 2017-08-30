@@ -1,6 +1,6 @@
 {
   "name": "citizeng",
-  "version": "1.0.0",
+  "version": "0.0.2",
   "description": "Server frond-end for authenticated Web services.",
   "main": "citizeng.js",
   "dependencies": {
@@ -14,7 +14,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "citizeng-demo.js"
   },
   "repository": {
     "type": "git",
