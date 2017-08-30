@@ -1,6 +1,6 @@
 # citizeng
 
-Server frond-end for authenticated Web services. 
+A server frond-end for authenticated Web services. 
 
 ## Features
 
