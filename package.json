@@ -1,7 +1,7 @@
 {
   "name": "citizeng",
   "version": "0.0.2",
-  "description": "Server frond-end for authenticated Web services.",
+  "description": "A turnkey user-password-based framework to create an authenticated HTTP-server.",
   "main": "citizeng.js",
   "dependencies": {
     "express": "^4.15.4",
@@ -23,7 +23,8 @@
   "keywords": [
     "HTTP",
     "passport",
-    "socket.io"
+    "socket.io",
+    "sqlite3"
   ],
   "author": "LordHadder",
   "license": "MIT",
