@@ -1,7 +1,7 @@
 # citizeng
 A turnkey frond-end server to use authenticated Web services. 
 ## Purpose
-This project provides a parent HTTP-server class users can derive from to build authenticated Web services. It is supposed to be used on a small and local network. A particular attention is paid to ensure it can run easily on small devices (more particularly on a [raspberry pi](https://www.raspberrypi.org/) system).
+This project provides a parent HTTP-server class users can derive from to build authenticated Web services. It is supposed to be used on a **small** and **local network**. A particular attention is paid to ensure it can run easily on small devices (more particularly on a [Raspberry pi](https://www.raspberrypi.org/) system).
 ## Features
 TODO
 ## Installation
@@ -30,7 +30,7 @@ var citizengserver = require('citizeng');
 ```
 The server object must be initialized first by providing a `port number`, a master `user name` and and the master user `password`.
 
-In the following sample, the server will be accessible from the URL *http://localhost:3030*, the user is *Groot* with password *root*:
+In the following sample, the server will be accessible from the URL **http://localhost:3030**, the user is **Groot** with password **root**:
 ```JavaScript
 citizengserver.init(3030, "Groot", "root");
 ```
