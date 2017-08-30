@@ -38,12 +38,13 @@ First, you need to load `citizeng` module to retrieve an HTTP-server object:
 var citizengserver = require('citizeng');
 ```
 
-The server object must be initialized first by providing a `port number`, a master `user name` and and the master user `password`. In the following sample, the server will be accessible from the URL *http://localhost:3030*, by the master user *root* with password *root*:
+The server object must be initialized first by providing a `port number`, a master `user name` and and the master user `password`. In the following sample, the server will be accessible from the URL *http://localhost:3030*, the user is *Groot* with password *root*:
 
 ```JavaScript
-citizengserver.init(3030, "root", "root");
+citizengserver.init(3030, "Groot", "root");
 ```
 
+TODO
 ```JavaScript
 // Declare main page route.
 citizengserver.get("/", function (req, res) {
@@ -58,6 +59,7 @@ citizengserver.get("/", function (req, res) {
 });
 ```
 
+TODO
 ```JavaScript
 // Declare a reserved page route.
 citizengserver.get("/admin", function(req, res) {
@@ -65,6 +67,7 @@ citizengserver.get("/admin", function(req, res) {
 });
 ```
 
+TODO
 ```JavaScript
 // Simple message using socket.io method.
 citizengserver.ioset("consolemessage", function(data, ackfunc) {
@@ -73,6 +76,7 @@ citizengserver.ioset("consolemessage", function(data, ackfunc) {
 });
 ```
 
+TODO
 ```JavaScript
 // Declare a reserved Socket.io method.
 citizengserver.ioset("useradd", function(data, ackfunc) {
@@ -81,8 +85,9 @@ citizengserver.ioset("useradd", function(data, ackfunc) {
 });
 ```
 
+Now start the server:
+
 ```JavaScript
-// Start the server.
 citizengserver.run();
 ```
 
