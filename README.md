@@ -1,5 +1,5 @@
 # citizeng
-A turnkey username-password framework to create an systematically-authenticated HTTP-server. 
+A turnkey username-password framework to create a systematically-authenticated HTTP-server. 
 ## Purpose
 This project provides a parent HTTP-server class users can derive from to build authenticated Web services. It is supposed to be used on a **small** and **local network**. A particular attention is paid to ensure it can run easily on small devices (more particularly on a [Raspberry pi](https://www.raspberrypi.org/) system).
 ## Features
