@@ -540,5 +540,5 @@ exports.ioset = function(method, func) {
   iofuncs.push(ioobj);
 
   // Log.
-  console.log("ioset() : Registering Socket.io method " + "'" + method + "' (reserved)");
+  console.log("ioset() : Registering Socket.io method " + "'" + method + "'");
 };
