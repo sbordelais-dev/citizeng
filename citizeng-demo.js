@@ -1,5 +1,5 @@
 // Requirements.
-var citizeng = require('./citizeng');
+var citizeng = require("./citizeng");
 
 // Initialize the server.
 citizeng.init(3030, "root", "root");
