@@ -115,8 +115,8 @@ citizeng.init(3030, "Groot", "root", __dirname);
 ```
 Then, create subfolders named `/js` and `/css` in the current path to respectively put Javacript and CSS files.
 
-For example let's consider the custom CSS file `style-demo.css`, a possible way to reference it is:
-```Html
+For example, let's consider the custom CSS file `style-demo.css`, a possible way to reference it is:
+```HTML
 <link rel="stylesheet" type="text/css" href="./css/style-demo.css"/>
 ```
 ## Next things to do
