@@ -214,7 +214,7 @@ process.on('SIGINT', () => {
 /* ================== */
 
 /* Initialize the server */
-exports.init = function(port, username, password) {
+exports.init = function(port, username, password, dirname) {
   // Already started.
   if (null != app) return ;
 
@@ -239,10 +239,18 @@ exports.init = function(port, username, password) {
   app.use(passport.session());
   
   /* Authorize script directory. */
-  app.use("/js", express.static((__dirname + "/js")));
+  app.use("/citizeng.js", express.static((__dirname + "/js")));
 
   /* Authorize style directory. */
-  app.use("/css", express.static((__dirname + "/css")));
+  app.use("/citizeng.css", express.static((__dirname + "/css")));
+
+  if (null != dirname) {
+    /* Authorize script directory for callee. */
+    app.use("/js", express.static((dirname + "/js")));
+    
+    /* Authorize style directory for callee. */
+    app.use("/css", express.static((dirname + "/css")));
+  }
 
   /* ==================== */
   /* Server configuration */
@@ -261,7 +269,7 @@ exports.init = function(port, username, password) {
   }
 
   // Database directory.
-  const dbdir = __dirname + "/db";
+  const dbdir = ((null != dirname)?dirname : __dirname) + "/db";
 
   // Check database directory.
   if (!fs.existsSync(dbdir)) {
