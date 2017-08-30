@@ -3,7 +3,10 @@ A turnkey user-password-based framework to create an authenticated HTTP-server.
 ## Purpose
 This project provides a parent HTTP-server class users can derive from to build authenticated Web services. It is supposed to be used on a **small** and **local network**. A particular attention is paid to ensure it can run easily on small devices (more particularly on a [Raspberry pi](https://www.raspberrypi.org/) system).
 ## Features
-TODO
+* Use [PassportJS](http://passportjs.org/) as an authentication framework.
+* Support real-time HTML rendering thanks to [socket.io](https://socket.io/) framework.
+* Simple and lightweight users management using [sqlite3](https://www.npmjs.com/package/sqlite3) database.
+* Offer basic users management: list, add, remove users and password change.
 ## Installation
 ### Default installation
 ```Shell
@@ -78,5 +81,6 @@ citizeng.run();
 ## Next things to do
 - [ ] To support secured protocol (HTTPS)
 - [ ] To offer a way to customize private pages view (CSS)
+- [ ] To make unit test ([mocha](https://mochajs.org/)?)
 ## License
 [MIT](https://github.com/socketio/socket.io/blob/master/LICENSE)
