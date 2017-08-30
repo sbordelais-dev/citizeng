@@ -10,7 +10,7 @@ This project provides a parent HTTP-server class users can derive from to build 
 * Offer basic users management: list, add, remove and password change.
 ## Overview
 ### What does the framework provide?
-The framework provides only tree static routes: `/login`, `/admin` and `/404`.
+The framework provides only **tree static routes** : `/login`, `/admin` and `/404`.
 
 * The `/login` route presents a basic username/password login interface. This is where unhauthenticated users will be redirected to. Here the user could connect to the server and/or change its password on the fly.
 
@@ -18,7 +18,7 @@ The framework provides only tree static routes: `/login`, `/admin` and `/404`.
 
 * The `/404` route provides a fordidden access page when the user try to access an non-authorized service (because it does not exist or because the user does not hav the right to access it).
 
-> Note : Theses routes are said to be **reserved**.
+> Note : Theses **static routes** are said to be **reserved**.
 
 The framework provides a way to dynamically render services too thanks to the `socket.io` framework. The following routes are used for internal purpose:
 
@@ -26,7 +26,7 @@ The framework provides a way to dynamically render services too thanks to the `s
 
 * The `userpresent`, `userlist`, `useradd`, `userdelete` and `userchangepassword` are used to manage users database.
 
-> Note : Theses routes are said to be **reserved**, too.
+> Note : Theses **dynamic routes** are said to be **reserved**, too.
 
 ### Users type
 This framework considers **tree types of users**, depending on their given access right :
@@ -57,7 +57,7 @@ node citizeng-demo
 ## How to use
 First, you need to load `citizeng` module to retrieve an HTTP-server object:
 ```JavaScript
-var citizeng = require('citizeng');
+var citizeng = require("citizeng");
 ```
 The server object must be initialized first by providing a `port number`, a master `user name` and and the master user `password`.
 
@@ -65,7 +65,7 @@ In the following sample, the server will be accessible from the URL **http://loc
 ```JavaScript
 citizeng.init(3030, "Groot", "root");
 ```
-To access services, just make express-like GET and POST requests. Ths sample render a specific HTML file depending on if the user is a `basic` or a `super` user:
+To access services, just make [express](http://expressjs.com/)-like GET and POST requests. Ths sample render a specific HTML file depending on if the user is a `basic` or a `super` user:
 ```JavaScript
 citizeng.get("/", function (req, res) {
   // Super user's page.
@@ -78,7 +78,7 @@ citizeng.get("/", function (req, res) {
   }
 });
 ```
-Declaring a **reserved** route may have no effect.
+Declaring a static **reserved** route may have no effect.
 ```JavaScript
 citizeng.get("/admin", function(req, res) {
   res.send("This may have not effect!");
@@ -96,7 +96,7 @@ citizeng.ioset("consolemessage", function(data, ackfunc) {
   console.log(data);
 });
 ```
-Declaring a **reserved** `socket.io` route may have no effect.
+Declaring a dynamic **reserved** route may have no effect.
 ```JavaScript
 citizeng.ioset("useradd", function(data, ackfunc) {
   // Log.
