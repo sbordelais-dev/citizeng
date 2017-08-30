@@ -32,14 +32,15 @@ node citizeng-demo
 
 ## How to use
 
-First, you need to load **citizeng** module:
+First, you need to load `citizeng` module to retrieve an HTTP-server object:
 
 ```JavaScript
 var citizengserver = require('citizeng');
 ```
 
+The server object must be initialized first by providing `a port number`, a master `user name` and and the master user `password`. In the following sample, the server will be accessible from the URL `http://localhost:3030`, by the master user `root` with password `root`:
+
 ```JavaScript
-// Initialize the server.
 citizengserver.init(3030, "root", "root");
 ```
 
