@@ -8,11 +8,11 @@ citizeng.init(3030, "root", "root", __dirname);
 citizeng.get("/", function (req, res) {
   // Super user's page.
   if (req.user.super) {
-    res.sendFile((__dirname + "/indexsuper.html"));
+    res.sendFile((__dirname + "/indexsuper-demo.html"));
   }
   // Default user's page.
   else {
-    res.sendFile((__dirname + "/index.html"));
+    res.sendFile((__dirname + "/index-demo.html"));
   }
 });
 

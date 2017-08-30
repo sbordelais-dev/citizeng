@@ -318,6 +318,9 @@ exports.run = function () {
 
   /* Login post route. */
   app.post("/login", function(req, res, next) {
+    // Log
+    console.log("ip: " + req.connection.remoteAddress);
+           
     // Need to update password.
     if ((null != req.body.newpassword) && (0 < req.body.newpassword.length)) {
       changePasswordInDatabase(server.db, req.body.username, req.body.newpassword, function(err){
