@@ -29,6 +29,7 @@ First, you need to load `citizeng` module to retrieve an HTTP-server object:
 var citizengserver = require('citizeng');
 ```
 The server object must be initialized first by providing a `port number`, a master `user name` and and the master user `password`.
+
 In the following sample, the server will be accessible from the URL *http://localhost:3030*, the user is *Groot* with password *root*:
 ```JavaScript
 citizengserver.init(3030, "Groot", "root");
