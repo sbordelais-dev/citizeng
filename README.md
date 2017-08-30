@@ -75,5 +75,8 @@ Now start the server:
 ```JavaScript
 citizengserver.run();
 ```
+## Next things to do
+- [ ] To support secured protocol (HTTPS)
+- [ ] To offer a way to customize private pages view (CSS)
 ## License
 [MIT](https://github.com/socketio/socket.io/blob/master/LICENSE)
