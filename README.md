@@ -108,12 +108,17 @@ Now start the server:
 ```JavaScript
 citizeng.run();
 ```
-### Support Javascript and CSS reference
+### Support Javascript and CSS references
 You will need to add the current path during initialization:
 ```JavaScript
 citizeng.init(3030, "Groot", "root", __dirname);
 ```
 Then, create subfolders named `/js` and `/css` in the current path to respectively put Javacript and CSS files.
+
+For example let's consider the custom CSS file `style-demo.css`, a possible way to reference it is:
+```Html
+<link rel="stylesheet" type="text/css" href="./css/style-demo.css"/>
+```
 ## Next things to do
 - [ ] To make unit test ([mocha](https://mochajs.org/)?)
 - [ ] To support secured protocol (HTTPS)
