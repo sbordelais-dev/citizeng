@@ -6,11 +6,11 @@ This project provides a parent HTTP-server class users can derive from to build 
 TODO
 ## Installation
 ### Default installation
-```bash
+```Shell
 npm install citizeng
 ```
 ### Installation for development
-```bash
+```Shell
 # Clone the repository.
 git clone https://github.com/LordHadder/citizeng.git mydir
 
