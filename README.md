@@ -1,7 +1,7 @@
 # citizeng
 A turnkey frond-end server to use authenticated Web services. 
 ## Purpose
-This project provides a parent HTTP-server class users can derive from to build authenticated Web services.
+This project provides a parent HTTP-server class users can derive from to build authenticated Web services. It is supposed to be used on a small and local network. A particular attention is paid to ensure it can run easily on small devices (more particularly on a [raspberry pi](https://www.raspberrypi.org/) system).
 ## Features
 TODO
 ## Installation
