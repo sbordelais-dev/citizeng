@@ -32,19 +32,18 @@ node citizeng-demo
 
 ## How to use
 
-TODO
+First, you need to load **citizeng** module:
 
-```
-// Requirements.
-var citizengserver = require('./citizeng');
+```JavaScript
+var citizengserver = require('citizeng');
 ```
 
-```
+```JavaScript
 // Initialize the server.
 citizengserver.init(3030, "root", "root");
 ```
 
-```
+```JavaScript
 // Declare main page route.
 citizengserver.get("/", function (req, res) {
   // Super user's page.
@@ -58,14 +57,14 @@ citizengserver.get("/", function (req, res) {
 });
 ```
 
-```
+```JavaScript
 // Declare a reserved page route.
 citizengserver.get("/admin", function(req, res) {
   res.send("This may have not effect!");
 });
 ```
 
-```
+```JavaScript
 // Simple message using socket.io method.
 citizengserver.ioset("consolemessage", function(data, ackfunc) {
   // Log.
@@ -73,7 +72,7 @@ citizengserver.ioset("consolemessage", function(data, ackfunc) {
 });
 ```
 
-```
+```JavaScript
 // Declare a reserved Socket.io method.
 citizengserver.ioset("useradd", function(data, ackfunc) {
   // Log.
@@ -81,7 +80,7 @@ citizengserver.ioset("useradd", function(data, ackfunc) {
 });
 ```
 
-```
+```JavaScript
 // Start the server.
 citizengserver.run();
 ```
