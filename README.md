@@ -26,18 +26,18 @@ node citizeng-demo
 ## How to use
 First, you need to load `citizeng` module to retrieve an HTTP-server object:
 ```JavaScript
-var citizengserver = require('citizeng');
+var citizeng = require('citizeng');
 ```
 The server object must be initialized first by providing a `port number`, a master `user name` and and the master user `password`.
 
 In the following sample, the server will be accessible from the URL **http://localhost:3030**, the user is **Groot** with password **root**:
 ```JavaScript
-citizengserver.init(3030, "Groot", "root");
+citizeng.init(3030, "Groot", "root");
 ```
 TODO
 ```JavaScript
 // Declare main page route.
-citizengserver.get("/", function (req, res) {
+citizeng.get("/", function (req, res) {
   // Super user's page.
   if (req.user.super) {
     res.sendFile((__dirname + "/indexsuper.html"));
@@ -51,14 +51,14 @@ citizengserver.get("/", function (req, res) {
 TODO
 ```JavaScript
 // Declare a reserved page route.
-citizengserver.get("/admin", function(req, res) {
+citizeng.get("/admin", function(req, res) {
   res.send("This may have not effect!");
 });
 ```
 TODO
 ```JavaScript
 // Simple message using socket.io method.
-citizengserver.ioset("consolemessage", function(data, ackfunc) {
+citizeng.ioset("consolemessage", function(data, ackfunc) {
   // Log.
   console.log(data);
 });
@@ -66,14 +66,14 @@ citizengserver.ioset("consolemessage", function(data, ackfunc) {
 TODO
 ```JavaScript
 // Declare a reserved Socket.io method.
-citizengserver.ioset("useradd", function(data, ackfunc) {
+citizeng.ioset("useradd", function(data, ackfunc) {
   // Log.
   console.log("This may have not effect!");
 });
 ```
 Now start the server:
 ```JavaScript
-citizengserver.run();
+citizeng.run();
 ```
 ## Next things to do
 - [ ] To support secured protocol (HTTPS)
