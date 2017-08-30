@@ -55,6 +55,7 @@ npm install express passport passport-local body-parser express-session sqlite3 
 node citizeng-demo
 ```
 ## How to use
+### Default usage
 First, you need to load `citizeng` module to retrieve an HTTP-server object:
 ```JavaScript
 var citizeng = require("citizeng");
@@ -107,6 +108,12 @@ Now start the server:
 ```JavaScript
 citizeng.run();
 ```
+### Support Javascript and CSS reference
+You will need to add the current path during initialization:
+```JavaScript
+citizeng.init(3030, "Groot", "root", __dirname);
+```
+Then, create subfolders named `/js` and `/css` in the current path to respectively put Javacript and CSS files.
 ## Next things to do
 - [ ] To make unit test ([mocha](https://mochajs.org/)?)
 - [ ] To support secured protocol (HTTPS)
