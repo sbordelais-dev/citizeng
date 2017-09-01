@@ -70,7 +70,7 @@ To access services, just make [express](http://expressjs.com/)-like GET and POST
 ```JavaScript
 citizeng.get  ( "/"
               , (__dirname + "/index.html")
-              , (__dirname + "/indexsuper.html.html"));
+              , (__dirname + "/indexsuper.html"));
 ```
 Declaring a static **reserved** route may have no effect.
 ```JavaScript
