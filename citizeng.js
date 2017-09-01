@@ -486,7 +486,7 @@ exports.run = function () {
 }
 
 /* Register custom GET method route. */
-exports.get = function(route, func) {
+exports.get = function(route, file, superfile) {
   if (null == app) return ;
 
   // Reserved routes.
@@ -502,9 +502,21 @@ exports.get = function(route, func) {
 
   // Log.
   console.log("get() : Registering GET method route " + "'" + route + "'");
-  
+
   // Do GET.
-  app.get(route, isLoggedIn, func);
+  app.get(route, isLoggedIn, function(req, res) {
+    // Super user.
+    if (req.user.super) {
+      if (null != superfile) res.sendFile(superfile);
+      else if (null != file) res.sendFile(file);
+      else res.status(404).sendFile(htmlpath_404);
+    }
+    // Forbidden page.
+    else {
+      if (null != file) res.sendFile(file);
+      else res.status(404).sendFile(htmlpath_404);
+    }
+  });
 };
 
 /* Register custom POST method route. */
@@ -524,7 +536,19 @@ exports.post = function(route, func) {
   console.log("post() : Registering POST method route " + "'" + route + "'");
   
   // Do POST.
-  app.post(route, isLoggedIn, func);
+  app.post(route, isLoggedIn, function(req, res) {
+    // Super user.
+    if (req.user.super) {
+      if (null != superfile) res.sendFile(superfile);
+      else if (null != file) res.sendFile(file);
+      else res.status(404).sendFile(htmlpath_404);
+    }
+    // Forbidden page.
+    else {
+      if (null != file) res.sendFile(file);
+      else res.status(404).sendFile(htmlpath_404);
+    }
+  });
 };
 
 /* Register custom Socket.io function */

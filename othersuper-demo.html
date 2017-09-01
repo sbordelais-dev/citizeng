@@ -2,12 +2,12 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Index Page (super user)</title>
+    <title>Other Page (speur user)</title>
   </head>
   <body onload="init()">
-    <p>Hey super user <span id="idwohami" style="font-weight:bold;"></span>!</p>
+    <p>Hey <span id="idwohami" style="font-weight:bold;"></span>!</p>
     <p><a href="#" onclick="onPing()">ping</a></p>
-    <a href="/other">other</a>&nbsp;&nbsp;<a href="/admin">admin</a>&nbsp;&nbsp;<a href="/logout">logout</a>
+    <a href="/other">other</a>&nbsp;&nbsp;<a href="/">index</a>&nbsp;&nbsp;<a href="/logout">logout</a>
     <!-- Script -->
     <script src="/citizeng.js/common.js"></script>
     <script src="/socket.io/socket.io.js"></script>
@@ -21,16 +21,6 @@
         whoami = getCookie("citizeng-whoami");
         document.getElementById("idwohami").innerHTML = whoami;
       }
-
-      /* Simple function to play with socket.io. */
-      function onPing() {
-        socket.emit("consolemessage", "::io client:: onPing() from '" + whoami + "' !!");
-      }
-
-      /* Socket connection callback. */
-      socket.on("connect", function(data) {
-        socket.emit("consolemessage", "::io client:: Bonjour super !!");
-      });
     </script>
     <!-- Script -->
   </body>
