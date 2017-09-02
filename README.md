@@ -35,6 +35,16 @@ This framework considers **tree types of users**, depending on their given acces
 3. `master` user : even if is the top-level-ever user type, it remains anecdotic because it is simply a `super` user (declared when inializing the server) that cannot be removed during the session.
 
 > Note: A `basic` user can be removed from the users database by any `super` user. The `master` user cannot be removed from the users database.
+### Password save strategy
+User password is never directly saved in the users database. To do so, sha512 is used to hash passwords before saving:
+```JavaScript
+function sha512(userpassword, salt){
+  var hmac = crypto.createHmac('sha512', salt);
+  hmac.update(userpassword);
+  var value = hmac.digest('hex');
+ return { salt:salt, hash:value };
+};
+```
 ## Installation
 ### Default installation
 ```Shell
