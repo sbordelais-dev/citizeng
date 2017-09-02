@@ -410,7 +410,7 @@ exports.run = function () {
           ackfn({message:err.message});
         }
         // Not found.
-        else if (0 == row.length) {
+        else if (null == row) {
           ackfn({message:"User '" + data + "' is unknown"});
         }
         // Found.
