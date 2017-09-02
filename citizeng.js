@@ -404,8 +404,8 @@ exports.run = function () {
 
     /* Check user name. */
     socket.on("userpresent", function(data, ackfn) {
-      var query = "SELECT username FROM users WHERE username=\"" + data + "\"";
-      server.db.all(query, function(err, row) {
+      var query = "SELECT username, super FROM users WHERE username=\"" + data + "\"";
+      server.db.get(query, function(err, row) {
         if (err) {
           ackfn({message:err.message});
         }

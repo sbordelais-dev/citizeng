@@ -5,6 +5,7 @@
     <title>Login Page</title>
   </head>
   <body onload="init()">
+    <p class="reservedbubble">Your are on a <span style="font-weight:bold">Reserved</span> page</p>
     <p>Please login!</p>
     <div>
       <form method="post" action="/login" onsubmit="return validateBeforeSubmit();">
@@ -88,6 +89,12 @@
               ctxloginform.buttonpasswordchange.disabled = false;
               ctxloginform.passwordnew.disabled = false;
               ctxloginform.passwordnewconfirm.disabled = false;
+
+              // Save user name in a cookie.
+              setCookie("citizeng-whoami", row.username);
+
+              // Am i super user in a cookie.
+              setCookie("citizeng-amisuper", row.super);
             }
           });
         }
@@ -133,9 +140,6 @@
             spanloginmess.innerHTML = "!! Password field is empty !!";
           }
           else {
-            // Save user name in a cookie.
-            setCookie("citizeng-whoami", inputusername.value);
-
             // Ok.
             return true;
           }
