@@ -34,4 +34,11 @@ citizeng.ioset("useradd", function(data, ackfunc) {
 });
 
 // Start the server.
-citizeng.run();
+citizeng.run  ( function() {
+                  // Log.
+                  console.log("Call at start-up");
+                }
+              , function() {
+                  // Log.
+                  console.log("Call at exit");
+                });

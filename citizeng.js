@@ -169,6 +169,9 @@ var app = null;
 // Array of Socket.io objects.
 var iofuncs = [];
 
+// Life cycle functions.
+var lifecycle = {init:null,fina:null};
+
 // Server object.
 const server =  { db:null
                 , http:null
@@ -202,6 +205,9 @@ process.on('SIGINT', () => {
   // Log.
   console.log("Exiting...");
 
+  // Finalize call back.
+  if (null != lifecycle.fina) lifecycle.fina();
+           
   // Release server object.
   finalize();
            
@@ -293,9 +299,13 @@ exports.init = function(port, username, password, dirname) {
 }
 
 /* Run the server */
-exports.run = function () {
+exports.run = function (init, fina) {
   // Server is already running.
   if (null == server) return ;
+
+  // Save lifecycle callbacks.
+  lifecycle.init = init;
+  lifecycle.fina = fina;
 
   /* =================== */
   /* Application routers */
@@ -483,6 +493,9 @@ exports.run = function () {
       socket.on(iofunc.method, iofunc.func);
     }
   });
+
+  // Initialize call back.
+  if (null != lifecycle.init) lifecycle.init();
 }
 
 /* Register custom GET method route. */
@@ -534,7 +547,7 @@ exports.post = function(route, func) {
 
   // Log.
   console.log("post() : Registering POST method route " + "'" + route + "'");
-  
+
   // Do POST.
   app.post(route, isLoggedIn, function(req, res) {
     // Super user.
