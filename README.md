@@ -79,12 +79,12 @@ citizeng.init(3030, "Groot", "root");
 To access services, just make [express](http://expressjs.com/)-like GET and POST requests. This sample render a specific HTML file depending on if the user is a `basic` or a `super` user:
 ```JavaScript
 citizeng.get  ( "/"
-              , (__dirname + "/index.html")         /* HTML file for basic user */
-              , (__dirname + "/indexsuper.html"));  /* HTML file for suser user */
+              , path.join(__dirname, "index.html")         /* HTML file for basic user */
+              , path.join(__dirname, "indexsuper.html"));  /* HTML file for suser user */
 ```
 Declaring a static **reserved** route may have no effect. The user will be redirected to the default administration page.
 ```JavaScript
-citizeng.get("/admin", (__dirname + "/index.html"));
+citizeng.get("/admin", path.join(__dirname, "index.html"));
 ```
 The following example shows how to use the `socket.io` layer to render dynamically a service.
 ```JavaScript

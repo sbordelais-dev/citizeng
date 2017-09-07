@@ -6,6 +6,7 @@ var express         = require('express'),
     fs              = require('fs'),
     crypto          = require('crypto'),
     passport        = require('passport'),
+    path            = require('path'),
     LocalStrategy   = require('passport-local').Strategy,
     bodyParser      = require('body-parser'),
     session         = require('express-session'),
@@ -44,7 +45,7 @@ function doHashPassword(userpassword) {
 function isLoggedIn(req, res, next) {
   if (req.isAuthenticated()) return next();
   res.redirect("/login");
-  
+
   // Log.
   console.log("Unauthorized access !");
 }
@@ -186,13 +187,13 @@ function finalize() {
     server.db.close();
     server.db = null;
   }
-  
+
   // Disconnect socket.io.
   if (null != server.io) {
     //server.io.Disconnect();
     server.io = null;
   }
-  
+
   // Close server connection.
   if (null != server.server) {
     server.http.close();
@@ -207,10 +208,10 @@ process.on('SIGINT', () => {
 
   // Finalize call back.
   if (null != lifecycle.fina) lifecycle.fina();
-           
+
   // Release server object.
   finalize();
-           
+
   // Do exit now.
   process.exit(0);
 });
@@ -226,7 +227,7 @@ exports.init = function(port, username, password, dirname) {
 
   // Create express app.
   if (null == (app = express())) return ;
-  
+
   /* ========================= */
   /* Application configuration */
   /* ========================= */
@@ -234,7 +235,7 @@ exports.init = function(port, username, password, dirname) {
   /* Retrieving form data. */
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({extended: true}));
-  
+
   /* Initialize passposrt and and session for persistent login sessions. */
   app.use(session({
     secret: "chainesecrete",
@@ -245,17 +246,17 @@ exports.init = function(port, username, password, dirname) {
   app.use(passport.session());
   
   /* Authorize script directory. */
-  app.use("/citizeng.js", express.static((__dirname + "/js")));
+  app.use("/citizeng.js", express.static(path.join(__dirname, "js")));
 
   /* Authorize style directory. */
-  app.use("/citizeng.css", express.static((__dirname + "/css")));
+  app.use("/citizeng.css", express.static(path.join(__dirname, "css")));
 
   if (null != dirname) {
     /* Authorize script directory for callee. */
-    app.use("/js", express.static((dirname + "/js")));
-    
+    app.use("/js", express.static(path.join(dirname, "js")));
+
     /* Authorize style directory for callee. */
-    app.use("/css", express.static((dirname + "/css")));
+    app.use("/css", express.static(path.join(dirname, "css")));
   }
 
   /* ==================== */
@@ -275,7 +276,7 @@ exports.init = function(port, username, password, dirname) {
   }
 
   // Database directory.
-  const dbdir = ((null != dirname)?dirname : __dirname) + "/db";
+  const dbdir = ((null != dirname)? dirname : path.join(__dirname, "db"));
 
   // Check database directory.
   if (!fs.existsSync(dbdir)) {
@@ -286,10 +287,10 @@ exports.init = function(port, username, password, dirname) {
   }
 
   // Database.
-  if (null == (server.db = new sqlite3.Database((dbdir + "/users.db")))) {
+  if (null == (server.db = new sqlite3.Database(path.join(dbdir, "users.db")))) {
     // Release server object.
     finalize();
-    
+
     // Done.
     return ;
   }
@@ -310,7 +311,7 @@ exports.run = function (init, fina) {
   /* =================== */
   /* Application routers */
   /* =================== */
-  
+
   /* Login route. */
   app.get("/login", function (req, res) {
     // Already authenticated.
@@ -399,7 +400,7 @@ exports.run = function (init, fina) {
       }
       stmt.finalize();
     });
-                  
+
     // Log.
     console.log("Connected to the database.");
 
