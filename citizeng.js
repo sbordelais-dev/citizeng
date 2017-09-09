@@ -525,8 +525,12 @@ exports.get = function(route, file, superfile, func) {
       if (null != superfile) res.sendFile(superfile);
       else if (null != file) res.sendFile(file);
       else if (0 != req.query.length) {
-        if (null != func) func(rest);
-        res.status(200).json(rest);
+        if (null != func) {
+          var ret = func(rest);
+          if (null == ret) res.status(404).sendFile(htmlpath_404);
+          else res.status(200).json(ret);
+        }
+        else res.status(200).json(rest);
       }
       else res.status(404).sendFile(htmlpath_404);
     }
@@ -534,8 +538,12 @@ exports.get = function(route, file, superfile, func) {
     else {
       if (null != file) res.sendFile(file);
       else if (0 != req.query.length) {
-        if (null != func) func(rest);
-        res.status(200).json(rest);
+        if (null != func) {
+          var ret = func(rest);
+          if (null == ret) res.status(404).sendFile(htmlpath_404);
+          else res.status(200).json(ret);
+        }
+        else res.status(200).json(rest);
       }
       else res.status(404).sendFile(htmlpath_404);
     }

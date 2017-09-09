@@ -25,6 +25,8 @@ citizeng.get("/admin", null, null);
 citizeng.get("/test", null, null, function(data) {
   // Log.
   console.log(data);
+  // Done.
+  return data;
 });
 
 // Simple message using socket.io method.
