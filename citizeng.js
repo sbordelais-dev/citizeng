@@ -519,7 +519,7 @@ exports.get = function(route, file, superfile, func) {
 
   // Do GET.
   app.get(route, isLoggedIn, function(req, res) {
-    var rest = {username:req.user.username, super:req.user.super, query:req.query};
+    var rest = (0 == req.query.length)? {username:req.user.username, super:req.user.super} : {username:req.user.username, super:req.user.super, query:req.query};
     // Super user.
     if (req.user.super) {
       if (null != superfile) res.sendFile(superfile);
