@@ -500,7 +500,7 @@ exports.run = function (init, fina) {
 }
 
 /* Register custom GET method route. */
-exports.get = function(route, file, superfile) {
+exports.get = function(route, file, superfile, func) {
   if (null == app) return ;
 
   // Reserved routes.
@@ -519,15 +519,24 @@ exports.get = function(route, file, superfile) {
 
   // Do GET.
   app.get(route, isLoggedIn, function(req, res) {
+    var rest = {username:req.user.username, super:req.user.super, query:req.query};
     // Super user.
     if (req.user.super) {
       if (null != superfile) res.sendFile(superfile);
       else if (null != file) res.sendFile(file);
+      else if (0 != req.query.length) {
+        if (null != func) func(rest);
+        res.status(200).json(rest);
+      }
       else res.status(404).sendFile(htmlpath_404);
     }
     // Forbidden page.
     else {
       if (null != file) res.sendFile(file);
+      else if (0 != req.query.length) {
+        if (null != func) func(rest);
+        res.status(200).json(rest);
+      }
       else res.status(404).sendFile(htmlpath_404);
     }
   });
