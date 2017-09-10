@@ -519,18 +519,18 @@ exports.get = function(route, file, superfile, func) {
 
   // Do GET.
   app.get(route, isLoggedIn, function(req, res) {
-    var rest = (0 == req.query.length)? {username:req.user.username, super:req.user.super} : {username:req.user.username, super:req.user.super, query:req.query};
+    var restin = (0 == req.query.length)? {username:req.user.username, super:req.user.super} : {username:req.user.username, super:req.user.super, query:req.query};
     // Super user.
     if (req.user.super) {
       if (null != superfile) res.sendFile(superfile);
       else if (null != file) res.sendFile(file);
       else if (0 != req.query.length) {
         if (null != func) {
-          var ret = func(rest);
-          if (null == ret) res.status(404).sendFile(htmlpath_404);
-          else res.status(200).json(ret);
+          func(restin, function ackfnc(restout) {
+            res.status(200).json(restout);
+          });
         }
-        else res.status(200).json(rest);
+        else res.status(200).json(restin);
       }
       else res.status(404).sendFile(htmlpath_404);
     }
@@ -539,11 +539,11 @@ exports.get = function(route, file, superfile, func) {
       if (null != file) res.sendFile(file);
       else if (0 != req.query.length) {
         if (null != func) {
-          var ret = func(rest);
-          if (null == ret) res.status(404).sendFile(htmlpath_404);
-          else res.status(200).json(ret);
+          func(restin, function ackfnc(restout) {
+            res.status(200).json(restout);
+          });
         }
-        else res.status(200).json(rest);
+        else res.status(200).json(restin);
       }
       else res.status(404).sendFile(htmlpath_404);
     }

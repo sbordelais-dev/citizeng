@@ -22,11 +22,8 @@ citizeng.get  ( "/othersuper"
 citizeng.get("/admin", null, null);
 
 // Declare a REST API.
-citizeng.get("/test", null, null, function(data) {
-  // Log.
-  console.log(data);
-  // Done.
-  return data;
+citizeng.get("/test", null, null, function(data, ackfunc) {
+  if (null != ackfunc) ackfunc({test:"ok", data:data});
 });
 
 // Simple message using socket.io method.
