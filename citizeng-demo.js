@@ -21,8 +21,13 @@ citizeng.get  ( "/othersuper"
 // Declare a reserved page route.
 citizeng.get("/admin", null, null);
 
-// Declare a REST API.
+// Declare a REST API (GET).
 citizeng.get("/test", null, null, function(data, ackfunc) {
+  if (null != ackfunc) ackfunc({test:"ok", data:data});
+});
+
+// Declare a REST API (POST).
+citizeng.post("/test", null, null, function(data, ackfunc) {
   if (null != ackfunc) ackfunc({test:"ok", data:data});
 });
 

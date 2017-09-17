@@ -551,13 +551,13 @@ exports.get = function(route, file, superfile, func) {
 };
 
 /* Register custom POST method route. */
-exports.post = function(route, func) {
+exports.post = function(route, file, superfile, func) {
   if (null == app) return ;
 
   // Reserved routes.
   if (route === "/login") {
     // Log.
-    console.log("get() : Could NOT register POST method route " + "'" + route + "' (reserved)");
+    console.log("post() : Could NOT register POST method route " + "'" + route + "' (reserved)");
     
     // Get out.
     return ;
@@ -568,15 +568,47 @@ exports.post = function(route, func) {
 
   // Do POST.
   app.post(route, isLoggedIn, function(req, res) {
+
+    // Content type (JSON only).
+    var contype = req.headers['content-type'];
+    if (!contype || (0 !== contype.indexOf('application/json'))) {
+      // Log.
+      console.log("post() : Content-type must be 'application/json'");
+     
+      // Forbidden access.
+      res.status(404).sendFile(htmlpath_404);
+
+      // Get out.
+      return ;
+    }
+
+    var restin = (0 == req.body.length)? {username:req.user.username, super:req.user.super} : {username:req.user.username, super:req.user.super, query:req.body};
+
     // Super user.
     if (req.user.super) {
       if (null != superfile) res.sendFile(superfile);
       else if (null != file) res.sendFile(file);
+      else if (0 != req.body.length) {
+        if (null != func) {
+          func(restin, function ackfnc(restout) {
+            res.status(200).json(restout);
+          });
+        }
+        else res.status(200).json(restin);
+      }
       else res.status(404).sendFile(htmlpath_404);
     }
     // Forbidden page.
     else {
       if (null != file) res.sendFile(file);
+      else if (0 != req.body.length) {
+        if (null != func) {
+          func(restin, function ackfnc(restout) {
+            res.status(200).json(restout);
+          });
+        }
+        else res.status(200).json(restin);
+      }
       else res.status(404).sendFile(htmlpath_404);
     }
   });
