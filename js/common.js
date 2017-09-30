@@ -69,3 +69,4 @@ function httpGet(url, callback)
   xmlHttp.open("GET", url, true);
   xmlHttp.send(null);
 }
+
