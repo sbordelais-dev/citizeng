@@ -373,6 +373,16 @@ exports.run = function (init, fina) {
     }
   });
 
+  /* Whoami REST API */
+  app.get("/whoami", isLoggedIn, function(req, res) {
+    if (null != req.user ) {
+      res.status(200).json({username:req.user.username, super:req.user.super});
+    }
+    else {
+      res.status(200).json({message:"no user defined"});
+    }
+  });
+  
   /* The 404 route (Alway keep this as the last route). */
   app.get("*", isLoggedIn, function(req, res){
     res.status(404).sendFile(htmlpath_404);
@@ -506,7 +516,8 @@ exports.get = function(route, file, superfile, func) {
   // Reserved routes.
   if ((route === "/admin")
   ||  (route === "/login")
-  ||  (route === "/logout")) {
+  ||  (route === "/logout")
+  ||  (route === "/whoami")) {
     // Log.
     console.log("get() : Could NOT register GET method route " + "'" + route + "' (reserved)");
 
