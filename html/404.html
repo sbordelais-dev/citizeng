@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <title>404 Page</title>
   </head>
-  <body onload="init404();" id="id404body">
+  <body onload="init();">
     <p class="reservedbubble">Your are on a <span style="font-weight:bold">Reserved</span> page</p>
     <p>404</p>
     <br/><a href="/">home</a>
@@ -12,5 +12,15 @@
     <link rel="stylesheet" type="text/css" href="/citizeng.css/common.css" />
     <link rel="stylesheet" type="text/css" href="/css/citizeng.css">
     <!-- Style -->
+    <!-- Script -->
+    <script src="/citizeng.js/common.js"></script>
+    <script src="/js/citizeng.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+      /* Initialization function. */
+      function init() {
+        // Custom initialization.
+        init404();
+      }
   </body>
 </html>
