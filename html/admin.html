@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <title>Admin Page</title>
   </head>
-  <body onload="init()">
+  <body onload="init();">
     <p class="reservedbubble">Your are on a <span style="font-weight:bold">Reserved</span> page</p>
     <p>Hi superuser <span id="idwohami" style="font-weight:bold;"></span>!</p>
     <!-- Contextual user form -->
@@ -34,9 +34,11 @@
     <a href="/">home</a>&nbsp;&nbsp;<a href="/logout">logout</a>
     <!-- Style -->
     <link rel="stylesheet" type="text/css" href="/citizeng.css/common.css"/>
+    <link rel="stylesheet" type="text/css" href="/css/citizeng.css">
     <!-- Style -->
     <!-- Script -->
     <script src="/citizeng.js/common.js"></script>
+    <script src="/js/citizeng.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
       /* Global variables. */
@@ -90,6 +92,9 @@
 
         // Reset users list.
         if (null != (divuserlist = document.getElementById("iddivuserlist"))) divuserlist.innerHTML = "";
+
+        // Custom initialization.
+        initadmin();
       }
 
       /* Refresh users table. */

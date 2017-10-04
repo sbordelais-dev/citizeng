@@ -4,32 +4,36 @@
     <meta charset="UTF-8" />
     <title>Login Page</title>
   </head>
-  <body onload="init()">
-    <p class="reservedbubble">Your are on a <span style="font-weight:bold">Reserved</span> page</p>
-    <p>Please login!</p>
-    <div>
+  <body onload="init();">
+    <div id="divheader" class="reservedbubble">Your are on a <span style="font-weight:bold">Reserved</span> page</div>
+    <div id="divbody">
       <form method="post" action="/login" onsubmit="return validateBeforeSubmit();">
-        <input type="text" name="username" onblur="validateUser(this)" id="idinputusername"/>&nbsp;User<br/>
-        <input type="password" name="password" onblur="validatePassword(this)" id="idpassword"/>&nbsp;Password<br/>
-        <div id="iddivpasswordnew" style="display:none;">
+        <input type="text" name="username" onblur="validateUser(this)" id="inputusername"/><span id="spanusername">&nbsp;User</span><br/>
+        <input type="password" name="password" onblur="validatePassword(this)" id="inputpassword"/><span id="spanpassword">&nbsp;Password</span><br/>
+        <div id="divpasswordnew" style="display:none;">
           <br/>
-          <input type="password" name="newpassword" id="idnewpassword" onblur="newPasswordChange()"/>&nbsp;New Password<br/>
-          <input type="password" name="newpasswordconfirm" id="idnewpasswordconfirm" onblur="newPasswordConfirmChange()"/>&nbsp;Confirm Password<br/>
+          <input type="password" name="newpassword" id="inputnewpassword" onblur="newPasswordChange()"/><span id="spannewpassword">&nbsp;New Password</span><br/>
+          <input type="password" name="newpasswordconfirm" id="inputnewpasswordconfirm" onblur="newPasswordConfirmChange()"/><span id="spannewpasswordconfirm">&nbsp;Confirm Password</span><br/>
           <br/>
         </div>
-        <input type="submit" value="LogIn" id="idbuttonlogin"/>
+        <input type="submit" value="LogIn" id="buttonlogin"/>
       </form>
-      <button onclick="togglePasswordChange()" id="idbuttonpasswordchange">Change Password</button>
+      <button onclick="togglePasswordChange()" id="buttonpasswordchange">Change Password</button>
     </div>
     <p><span id="idspanloginmess"></span></p>
     <!-- Style -->
     <link rel="stylesheet" type="text/css" href="/citizeng.css/common.css">
+    <link rel="stylesheet" type="text/css" href="/css/citizeng.css">
     <!-- Style -->
     <!-- Script -->
     <script src="/citizeng.js/common.js"></script>
+    <script src="/js/citizeng.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
       /* Global variables. */
+      var messagelogin =  [ "!! Password field is empty !!"
+                          , null
+                          , "!! New password does not match !!"];
       var ctxloginform =  { buttonpasswordchange:null
                           , divpasswordnew:null
                           , passwordnew:null
@@ -43,13 +47,13 @@
       /* Initialization function. */
       function init() {
         // Reset contextual form.
-        if (null != (ctxloginform.buttonpasswordchange  = document.getElementById("idbuttonpasswordchange"))) {ctxloginform.buttonpasswordchange.disabled = true;}
-        if (null != (ctxloginform.divpasswordnew        = document.getElementById("iddivpasswordnew"))) {ctxloginform.divpasswordnew.style.display = "none";}
-        if (null != (ctxloginform.passwordnew           = document.getElementById("idnewpassword"))) {ctxloginform.passwordnew.value = "";}
-        if (null != (ctxloginform.passwordnewconfirm    = document.getElementById("idnewpasswordconfirm"))) {ctxloginform.passwordnewconfirm.value = "";}
+        if (null != (ctxloginform.buttonpasswordchange  = document.getElementById("buttonpasswordchange"))) {ctxloginform.buttonpasswordchange.disabled = true;}
+        if (null != (ctxloginform.divpasswordnew        = document.getElementById("divpasswordnew"))) {ctxloginform.divpasswordnew.style.display = "none";}
+        if (null != (ctxloginform.passwordnew           = document.getElementById("inputnewpassword"))) {ctxloginform.passwordnew.value = "";}
+        if (null != (ctxloginform.passwordnewconfirm    = document.getElementById("inputnewpasswordconfirm"))) {ctxloginform.passwordnewconfirm.value = "";}
 
         // Set login button element.
-        if (null != (buttonlogin = document.getElementById("idbuttonlogin"))) {
+        if (null != (buttonlogin = document.getElementById("buttonlogin"))) {
           buttonlogin.disabled = true;
         }
         
@@ -59,14 +63,17 @@
         }
         
         // Set user name input element.
-        if (null != (inputusername = document.getElementById("idinputusername"))) {
+        if (null != (inputusername = document.getElementById("inputusername"))) {
           inputusername.value = "";
         }
 
         // Set user password element.
-        if (null != (password = document.getElementById("idpassword"))) {
+        if (null != (password = document.getElementById("inputpassword"))) {
           password.value = "";
         }
+
+        // Custom initialization.
+        initlogin();
       }
 
       /* User name validation function. */
@@ -81,7 +88,7 @@
           socket.emit("userpresent", ithis.value, function(err, row) {
             // User not found.
             if (null != err) {
-              spanloginmess.innerHTML = (0 < err.message.length)? (err.message) : ("!!? Bad response for '" + ithis.value + "' ?!!");
+              spanloginmess.innerHTML = messagelogin[1];//(0 < err.message.length)? (err.message) : ("!!? Bad response for '" + ithis.value + "' ?!!");
             }
             // User found.
             else {
@@ -123,7 +130,7 @@
           ctxloginform.buttonpasswordchange.disabled = true;
           ctxloginform.passwordnew.disabled = true;
           ctxloginform.passwordnewconfirm.disabled = true;
-          spanloginmess.innerHTML = "!! Password field is empty !!";
+          spanloginmess.innerHTML = messagelogin[0];
         }
       }
 
@@ -132,12 +139,12 @@
         if (ctxloginform.passwordnew.value !== ctxloginform.passwordnewconfirm.value) {
           ctxloginform.passwordnew.value = "";
           ctxloginform.passwordnewconfirm.value = "";
-          spanloginmess.innerHTML = "!! New password does not match !!";
+          spanloginmess.innerHTML = messagelogin[2];
         }
         else {
           // Password field is empty.
           if (0 == password.value.length) {
-            spanloginmess.innerHTML = "!! Password field is empty !!";
+            spanloginmess.innerHTML = messagelogin[0];
           }
           else {
             // Ok.
@@ -151,7 +158,7 @@
 
       /* Toggle function */
       function togglePasswordChange() {
-        toggleDiv(iddivpasswordnew);
+        toggleDiv(divpasswordnew);
         ctxloginform.passwordnew.value = "";
         ctxloginform.passwordnewconfirm.value = "";
       }

@@ -2,14 +2,26 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>404</title>
+    <title>Page 404</title>
   </head>
   <body onload="init();">
-    <p class="reservedbubble">Your are on a <span style="font-weight:bold">Reserved</span> page</p>
-    <p>404</p>
-    <br/><a href="/">home</a>
+    <div id="divheader" class="reservedbubble">Your are on a <span style="font-weight:bold">Reserved</span> page</div>
+    <div id="divbody">404</div>
+    <div id="divfooter"><a href="/">home</a></div>
     <!-- Style -->
     <link rel="stylesheet" type="text/css" href="/citizeng.css/common.css" />
+    <link rel="stylesheet" type="text/css" href="/css/citizeng.css">
     <!-- Style -->
+    <!-- Script -->
+    <script src="/citizeng.js/common.js"></script>
+    <script src="/js/citizeng.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+      /* Initialization function. */
+      function init() {
+        // Custom initialization.
+        init404();
+      }
+    </script>
   </body>
 </html>

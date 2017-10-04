@@ -56,3 +56,17 @@ function getCookie(cname) {
   }
   return "";
 }
+
+/* HTTP GET function. */
+function httpGet(url, callback)
+{
+  var xmlHttp = new XMLHttpRequest();
+  if (null == xmlHttp ) return ;
+  xmlHttp.onreadystatechange = function() {
+    if ((4 == xmlHttp.readyState) && (200 == xmlHttp.status))
+      callback(xmlHttp.responseText);
+  }
+  xmlHttp.open("GET", url, true);
+  xmlHttp.send(null);
+}
+
