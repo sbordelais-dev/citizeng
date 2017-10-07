@@ -5,22 +5,22 @@
     <title>Login Page</title>
   </head>
   <body onload="init();">
-    <div id="divheader" class="reservedbubble">Your are on a <span style="font-weight:bold">Reserved</span> page</div>
+    <div id="divheader">Login Page</div>
     <div id="divbody">
       <form method="post" action="/login" onsubmit="return validateBeforeSubmit();">
-        <input type="text" name="username" onblur="validateUser(this)" id="inputusername"/><span id="spanusername">&nbsp;User</span><br/>
-        <input type="password" name="password" onblur="validatePassword(this)" id="inputpassword"/><span id="spanpassword">&nbsp;Password</span><br/>
+        <input type="text" name="username" onblur="validateUser(this)" id="inputusername"/><span id="spanusername">User</span><br/>
+        <input type="password" name="password" onblur="validatePassword(this)" id="inputpassword"/><span id="spanpassword">Password</span><br/>
         <div id="divpasswordnew" style="display:none;">
           <br/>
-          <input type="password" name="newpassword" id="inputnewpassword" onblur="newPasswordChange()"/><span id="spannewpassword">&nbsp;New Password</span><br/>
-          <input type="password" name="newpasswordconfirm" id="inputnewpasswordconfirm" onblur="newPasswordConfirmChange()"/><span id="spannewpasswordconfirm">&nbsp;Confirm Password</span><br/>
+          <input type="password" name="newpassword" id="inputnewpassword" onblur="newPasswordChange()"/><span id="spannewpassword">New Password</span><br/>
+          <input type="password" name="newpasswordconfirm" id="inputnewpasswordconfirm" onblur="newPasswordConfirmChange()"/><span id="spannewpasswordconfirm">Confirm Password</span><br/>
           <br/>
         </div>
         <input type="submit" value="LogIn" id="buttonlogin"/>
       </form>
       <button onclick="togglePasswordChange()" id="buttonpasswordchange">Change Password</button>
     </div>
-    <div id="divfooter"><span id="idspanloginmess"></span></div>
+    <div id="divfooter"><span id="spanloginmess"></span></div>
     <!-- Style -->
     <link rel="stylesheet" type="text/css" href="/citizeng.css/common.css">
     <link rel="stylesheet" type="text/css" href="/css/citizeng.css">
@@ -32,7 +32,7 @@
     <script type="text/javascript">
       /* Global variables. */
       var messagelogin =  [ "!! Password field is empty !!"
-                          , null
+                          , "!! Unknown user !!"
                           , "!! New password does not match !!"];
       var ctxloginform =  { buttonpasswordchange:null
                           , divpasswordnew:null
@@ -58,7 +58,7 @@
         }
         
         // Set message span element.
-        if (null != (spanloginmess = document.getElementById("idspanloginmess"))) {
+        if (null != (spanloginmess = document.getElementById("spanloginmess"))) {
           spanloginmess.innerHTML = "";
         }
         
