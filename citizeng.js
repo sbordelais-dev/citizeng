@@ -4,6 +4,8 @@
 
 var express         = require('express'),
     fs              = require('fs'),
+    http            = require('http'),
+    https           = require('https'),
     crypto          = require('crypto'),
     passport        = require('passport'),
     path            = require('path'),
@@ -252,6 +254,9 @@ exports.init = function(port, username, password, dirname) {
   app.use("/citizeng.css", express.static(path.join(__dirname, "css")));
 
   if (null != dirname) {
+    /* Authorize certificate directory for callee. */
+    app.use("/cert", express.static(path.join(dirname, "cert")));
+    
     /* Authorize script directory for callee. */
     app.use("/js", express.static(path.join(dirname, "js")));
 
@@ -263,8 +268,43 @@ exports.init = function(port, username, password, dirname) {
   /* Server configuration */
   /* ==================== */
 
-  // Start the HTTP server.
-  if (null == (server.http = app.listen(port))) return server;
+  // Certificate path.
+  const certpath = path.join(dirname, "cert");
+  var certificate = { crt: null
+                    , key: null
+                    , pas: ""};
+
+  try {
+    // Optional pass phrase.
+    certificate.pas = "" + fs.readFileSync(path.join(certpath, "passphrase")) + "";
+  }
+  catch(err) {
+    // Oops.
+    certificate.pas = "";
+    console.log(err.message);
+  }
+
+  try {
+    // Check certificate presence.
+    certificate.crt = fs.readFileSync(path.join(certpath, "crt.pem"))
+    certificate.key = fs.readFileSync(path.join(certpath, "key.pem"))
+    console.log("Certificate installed in '" + certpath + "'");
+
+    // Start the HTTP server (secured).
+    if (null == (server.http = https.createServer ( { key:certificate.key
+                                                    , cert:certificate.crt
+                                                    , passphrase:certificate.pas}
+                                                  , app).listen(port))) return server;
+  }
+  catch(err) {
+    // Oops.
+    certificate.crt = null;
+    certificate.key = null;
+    console.log(err.message);
+
+    // Start the HTTP server.
+    if (null == (server.http = http.createServer(app).listen(port))) return server;
+  }
 
   // Socket.io.
   if (null == (server.io = require('socket.io')(server.http))) {
