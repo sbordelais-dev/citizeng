@@ -46,6 +46,11 @@
 
       /* Initialization function. */
       function init() {
+        // hide main elements.
+        if (null != (elemdivloginheader = document.getElementById("divheader"))) elemdivloginheader.style.display = "none";
+        if (null != (elemdivloginbody   = document.getElementById("divbody"))) elemdivloginbody.style.display = "none";
+        if (null != (elemdivloginfooter = document.getElementById("divfooter"))) elemdivloginfooter.style.display = "none";
+
         // Reset contextual form.
         if (null != (ctxloginform.buttonpasswordchange  = document.getElementById("buttonpasswordchange"))) {ctxloginform.buttonpasswordchange.disabled = true;}
         if (null != (ctxloginform.divpasswordnew        = document.getElementById("divpasswordnew"))) {ctxloginform.divpasswordnew.style.display = "none";}

@@ -1,3 +1,8 @@
+/* Global variables. */
+var elemdivloginheader = null;
+var elemdivloginbody = null;
+var elemdivloginfooter = null;
+
 /* Generate random string */
 function generateString(len) {
   var string = "";
