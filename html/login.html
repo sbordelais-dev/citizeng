@@ -5,8 +5,8 @@
     <title>Login Page</title>
   </head>
   <body onload="init();">
-    <div id="divheader">Login Page</div>
-    <div id="divbody">
+    <div id="divheader" style="display: none;">Login Page</div>
+    <div id="divbody" style="display: none;">
       <form method="post" action="/login" onsubmit="return validateBeforeSubmit();">
         <input type="text" name="username" onblur="validateUser(this)" id="inputusername"/><span id="spanusername">User</span><br/>
         <input type="password" name="password" onblur="validatePassword(this)" id="inputpassword"/><span id="spanpassword">Password</span><br/>
@@ -20,7 +20,7 @@
       </form>
       <button onclick="togglePasswordChange()" id="buttonpasswordchange">Change Password</button>
     </div>
-    <div id="divfooter"><span id="spanloginmess"></span></div>
+    <div id="divfooter" style="display: none;"><span id="spanloginmess"></span></div>
     <!-- Style -->
     <link rel="stylesheet" type="text/css" href="/citizeng.css/common.css">
     <link rel="stylesheet" type="text/css" href="/css/citizeng.css">
@@ -47,9 +47,9 @@
       /* Initialization function. */
       function init() {
         // hide main elements.
-        if (null != (elemdivloginheader = document.getElementById("divheader"))) elemdivloginheader.style.display = "none";
-        if (null != (elemdivloginbody   = document.getElementById("divbody"))) elemdivloginbody.style.display = "none";
-        if (null != (elemdivloginfooter = document.getElementById("divfooter"))) elemdivloginfooter.style.display = "none";
+        elemdivloginheader = document.getElementById("divheader");
+        elemdivloginbody   = document.getElementById("divbody");
+        elemdivloginfooter = document.getElementById("divfooter");
 
         // Reset contextual form.
         if (null != (ctxloginform.buttonpasswordchange  = document.getElementById("buttonpasswordchange"))) {ctxloginform.buttonpasswordchange.disabled = true;}

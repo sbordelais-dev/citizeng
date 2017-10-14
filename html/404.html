@@ -5,9 +5,9 @@
     <title>Page 404</title>
   </head>
   <body onload="init();">
-    <div id="divheader" class="reservedbubble">Your are on a <span style="font-weight:bold">Reserved</span> page</div>
-    <div id="divbody">404</div>
-    <div id="divfooter"><a href="/">home</a></div>
+    <div id="divheader" style="display:none;">Your are on a <span style="font-weight:bold">Reserved</span> page</div>
+    <div id="divbody" style="display:none;">404</div>
+    <div id="divfooter" style="display:none;"><a href="/">home</a></div>
     <!-- Style -->
     <link rel="stylesheet" type="text/css" href="/citizeng.css/common.css" />
     <link rel="stylesheet" type="text/css" href="/css/citizeng.css">
@@ -19,6 +19,11 @@
     <script type="text/javascript">
       /* Initialization function. */
       function init() {
+        // hide main elements.
+        elemdiv404header  = document.getElementById("divheader");
+        elemdiv404body    = document.getElementById("divbody");
+        elemdiv404footer  = document.getElementById("divfooter");
+
         // Custom initialization.
         init404();
       }
