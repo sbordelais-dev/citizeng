@@ -239,11 +239,9 @@ exports.init = function(port, username, password, dirname) {
   app.use(bodyParser.urlencoded({extended: true}));
 
   /* Initialize passposrt and and session for persistent login sessions. */
-  app.use(session({
-    secret: "chainesecrete",
-    resave: true,
-    saveUninitialized: true
-  }));
+  app.use(session(  { secret: "citizeng"
+                    , resave: true
+                    , saveUninitialized: true}));
   app.use(passport.initialize());
   app.use(passport.session());
   
@@ -255,7 +253,7 @@ exports.init = function(port, username, password, dirname) {
 
   if (null != dirname) {
     /* Authorize certificate directory for callee. */
-    app.use("/cert", express.static(path.join(dirname, "cert")));
+    app.use("/crt", express.static(path.join(dirname, "crt")));
     
     /* Authorize script directory for callee. */
     app.use("/js", express.static(path.join(dirname, "js")));
@@ -269,7 +267,7 @@ exports.init = function(port, username, password, dirname) {
   /* ==================== */
 
   // Certificate path.
-  const certpath = path.join(dirname, "cert");
+  const certpath = path.join(dirname, "crt");
   var certificate = { crt: null
                     , key: null
                     , pas: ""};
@@ -291,15 +289,23 @@ exports.init = function(port, username, password, dirname) {
     console.log("Certificate installed in '" + certpath + "'");
 
     // Start the HTTP server (secured).
-    if (null == (server.http = https.createServer ( { key:certificate.key
-                                                    , cert:certificate.crt
-                                                    , passphrase:certificate.pas}
-                                                  , app).listen(port))) return server;
+    if (0 < certificate.pas.length) {
+      if (null == (server.http = https.createServer ( { key:certificate.key
+                                                      , cert:certificate.crt
+                                                      , passphrase:certificate.pas}
+                                                    , app).listen(port))) return server;
+    }
+    else {
+      if (null == (server.http = https.createServer ( { key:certificate.key
+                                                      , cert:certificate.crt}
+                                                    , app).listen(port))) return server;
+    }
   }
   catch(err) {
     // Oops.
     certificate.crt = null;
     certificate.key = null;
+    certificate.pas = "";
     console.log(err.message);
 
     // Start the HTTP server.
