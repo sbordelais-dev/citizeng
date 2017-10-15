@@ -26,11 +26,15 @@
     <link rel="stylesheet" type="text/css" href="/css/citizeng.css">
     <!-- Style -->
     <!-- Script -->
+    <script src="/citizeng.js/mobile-detect.min.js"></script>
     <script src="/citizeng.js/common.js"></script>
     <script src="/js/citizeng.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
       /* Global variables. */
+      var ctzClientInfo = { browser:""
+                          , devide:""
+                          , os:""};
       var messagelogin =  [ "!! Password field is empty !!"
                           , "!! Unknown user !!"
                           , "!! New password does not match !!"];
@@ -75,6 +79,21 @@
         // Set user password element.
         if (null != (password = document.getElementById("inputpassword"))) {
           password.value = "";
+        }
+
+        // Set client information.
+        var md = new MobileDetect(window.navigator.userAgent);
+        var mobile = md.mobile();
+        var device = md.phone();
+        if ((null == md) || (null == mobile)) {
+          ctzClientInfo.browser = ctzGetBrowser();
+          ctzClientInfo.device = "desktop";
+          ctzClientInfo.os = ctzGetOS();
+        }
+        else {
+          if (null == (ctzClientInfo.browser = md.userAgent())) ctzClientInfo.browser = "unknown";
+          if (null == (ctzClientInfo.device = (null == device)? md.tablet() : device)) ctzClientInfo.device = "unknown";
+          if (null == (ctzClientInfo.os = md.os())) ctzClientInfo.os = "unknown";
         }
 
         // Custom initialization.
