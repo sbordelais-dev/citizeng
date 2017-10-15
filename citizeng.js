@@ -469,6 +469,12 @@ exports.run = function (init, fina) {
       console.log("client disconnected");
     });
 
+    // Simple message to server console.
+    socket.ioset("console", function(data, ackfunc) {
+      // Log.
+      console.log(data);
+    });
+
     /* Check user name. */
     socket.on("userpresent", function(data, ackfn) {
       var query = "SELECT username, super FROM users WHERE username=\"" + data + "\"";
@@ -677,6 +683,7 @@ exports.ioset = function(method, func) {
 
   // Reserved.
   if ((method == null)
+  ||  (method === "console")
   ||  (method === "useradd")
   ||  (method === "userdelete")
   ||  (method === "userlist")
