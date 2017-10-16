@@ -13,10 +13,16 @@
     <link rel="stylesheet" type="text/css" href="/css/citizeng.css">
     <!-- Style -->
     <!-- Script -->
+    <script src="/citizeng.js/mobile-detect.min.js"></script>
     <script src="/citizeng.js/common.js"></script>
     <script src="/js/citizeng.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
+      /* Global variables. */
+      var elemdiv404header  = null;
+      var elemdiv404body    = null;
+      var elemdiv404footer  = null;
+
       /* Initialization function. */
       function init() {
         // hide main elements.
@@ -24,8 +30,12 @@
         elemdiv404body    = document.getElementById("divbody");
         elemdiv404footer  = document.getElementById("divfooter");
 
+        // Retrieve client information.
+        clientinfo = ctzGetClientInfo();
+        socket.emit("console", JSON.stringify(clientinfo));
+
         // Custom initialization.
-        init404();
+        init404(clientinfo);
       }
     </script>
   </body>

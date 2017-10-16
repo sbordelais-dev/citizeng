@@ -32,9 +32,9 @@
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
       /* Global variables. */
-      var ctzClientInfo = { browser:""
-                          , devide:""
-                          , os:""};
+      var elemdivloginheader = null;
+      var elemdivloginbody = null;
+      var elemdivloginfooter = null;
       var messagelogin =  [ "!! Password field is empty !!"
                           , "!! Unknown user !!"
                           , "!! New password does not match !!"];
@@ -65,7 +65,7 @@
         if (null != (buttonlogin = document.getElementById("buttonlogin"))) {
           buttonlogin.disabled = true;
         }
-        
+
         // Set message span element.
         if (null != (spanloginmess = document.getElementById("spanloginmess"))) {
           spanloginmess.innerHTML = "";
@@ -81,23 +81,12 @@
           password.value = "";
         }
 
-        // Set client information.
-        var md = new MobileDetect(window.navigator.userAgent);
-        var mobile = md.mobile();
-        var device = md.phone();
-        if ((null == md) || (null == mobile)) {
-          ctzClientInfo.browser = ctzGetBrowser();
-          ctzClientInfo.device = "desktop";
-          ctzClientInfo.os = ctzGetOS();
-        }
-        else {
-          if (null == (ctzClientInfo.browser = md.userAgent())) ctzClientInfo.browser = "unknown";
-          if (null == (ctzClientInfo.device = (null == device)? md.tablet() : device)) ctzClientInfo.device = "unknown";
-          if (null == (ctzClientInfo.os = md.os())) ctzClientInfo.os = "unknown";
-        }
+        // Retrieve client information.
+        clientinfo = ctzGetClientInfo();
+        socket.emit("console", JSON.stringify(clientinfo));
 
         // Custom initialization.
-        initlogin();
+        initlogin(clientinfo);
       }
 
       /* User name validation function. */
@@ -122,10 +111,10 @@
               ctxloginform.passwordnewconfirm.disabled = false;
 
               // Save user name in a cookie.
-              setCookie("citizeng-whoami", row.username);
+              ctzSetCookie("citizeng-whoami", row.username);
 
               // Am i super user in a cookie.
-              setCookie("citizeng-amisuper", row.super);
+              ctzSetCookie("citizeng-amisuper", row.super);
             }
           });
         }

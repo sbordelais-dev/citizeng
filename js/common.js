@@ -1,10 +1,5 @@
-/* Global variables. */
-var elemdivloginheader = null;
-var elemdivloginbody = null;
-var elemdivloginfooter = null;
-
 /* Generate random string */
-function generateString(len) {
+function ctzGenerateString(len) {
   var string = "";
   var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   
@@ -17,7 +12,7 @@ function generateString(len) {
 }
 
 /* Show/Hide DIV section. */
-function toggleDiv(divelem, blockornone) {
+function ctzToggleDiv(divelem, blockornone) {
   if (null == divelem) return ;
   if (blockornone) {
     divelem.style.display = blockornone;
@@ -32,7 +27,7 @@ function toggleDiv(divelem, blockornone) {
 }
 
 /* Set cookie function. */
-function setCookie(cname, cvalue, exdays) {
+function ctzSetCookie(cname, cvalue, exdays) {
   var cookie = cname + "=" + cvalue;
   if (0 < exdays) {
     var d = new Date();
@@ -47,7 +42,7 @@ function setCookie(cname, cvalue, exdays) {
 }
 
 /* Get cookie function. */
-function getCookie(cname) {
+function ctzGetCookie(cname) {
   var name = cname + "=";
   var ca = document.cookie.split(';');
   for(var i = 0; i < ca.length; i++) {
@@ -63,7 +58,7 @@ function getCookie(cname) {
 }
 
 /* HTTP GET function. */
-function httpGet(url, callback)
+function ctzHttpGet(url, callback)
 {
   var xmlHttp = new XMLHttpRequest();
   if (null == xmlHttp ) return ;

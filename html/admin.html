@@ -37,6 +37,7 @@
     <link rel="stylesheet" type="text/css" href="/css/citizeng.css">
     <!-- Style -->
     <!-- Script -->
+    <script src="/citizeng.js/mobile-detect.min.js"></script>
     <script src="/citizeng.js/common.js"></script>
     <script src="/js/citizeng.js"></script>
     <script src="/socket.io/socket.io.js"></script>
@@ -69,7 +70,7 @@
       /* Initialization function. */
       function init() {
         // User name from cookie.
-        whoami = getCookie("citizeng-whoami");
+        whoami = ctzGetCookie("citizeng-whoami");
         document.getElementById("idwohami").innerHTML = whoami;
 
         // Reset contextual form.
@@ -93,8 +94,12 @@
         // Reset users list.
         if (null != (divuserlist = document.getElementById("iddivuserlist"))) divuserlist.innerHTML = "";
 
+        // Retrieve client information.
+        clientinfo = ctzGetClientInfo();
+        socket.emit("console", JSON.stringify(clientinfo));
+
         // Custom initialization.
-        initadmin();
+        initadmin(clientinfo);
       }
 
       /* Refresh users table. */
@@ -264,7 +269,7 @@
           ctxuserform.buttondel.disabled = true;
 
           // Toggle add form.
-          toggleDiv(ctxuserform.divadd);
+          ctzToggleDiv(ctxuserform.divadd);
 
           // Add form is hidden.
           if (ctxuserform.divadd.style.display === "block") {
@@ -323,7 +328,7 @@
         }
         else {
           // Hide section.
-          toggleDiv(ctxuserform.divadd, "none");
+          ctzToggleDiv(ctxuserform.divadd, "none");
         
           // Build new user object.
           var newuser = { username:ctxuserform.inputusername.value
@@ -357,12 +362,12 @@
       /* Reset password */
       function doResetPassword() {
         ctxresetpasswordform.inputpasswordnew.disabled = true;
-        var userselected = {username:ctxresetpasswordform.userselected.value, newpassword:generateString(10)};
+        var userselected = {username:ctxresetpasswordform.userselected.value, newpassword:ctzGenerateString(10)};
         socket.emit("userchangepassword", userselected, function(err) {
           if (null == err) {
             ctxresetpasswordform.inputpasswordnew.value = userselected.newpassword;
             ctxresetpasswordform.buttoncopytoclipboard.disabled = false;
-            toggleDiv(ctxresetpasswordform.divresetpassword, "block");
+            ctzToggleDiv(ctxresetpasswordform.divresetpassword, "block");
           }
         });
       }
@@ -379,7 +384,7 @@
         try {
           // Try copying selected text.
           if (document.execCommand("copy")) {
-            toggleDiv(ctxresetpasswordform.divresetpassword, "none");
+            ctzToggleDiv(ctxresetpasswordform.divresetpassword, "none");
             ctxresetpasswordform.inputpasswordnew.disabled = true;
             ctxresetpasswordform.inputpasswordnew.value = "";
             ctxresetpasswordform.buttoncopytoclipboard.disabled = true;
