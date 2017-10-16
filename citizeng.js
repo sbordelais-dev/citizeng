@@ -470,7 +470,7 @@ exports.run = function (init, fina) {
     });
 
     // Simple message to server console.
-    socket.on("console", function(data, ackfunc) {
+    socket.on("console", function(data) {
       // Log.
       console.log(data);
     });

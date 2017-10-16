@@ -138,3 +138,36 @@ function ctzGetBrowser() {
     return "unknown";
   }
 }
+
+/* Complete client information */
+function ctzGetClientInfo() {
+  // Client information object.
+  var clientInfo = {browser:"", device:"", os:""};
+
+  // Set client information.
+  var md = null;
+  try {
+    md = new MobileDetect(window.navigator.userAgent);
+  }
+  catch(err) {
+    // need to include '/citizeng.js/mobile-detect.min.js'.
+    return clientInfo;
+  }
+  if (null == md) return clientInfo;
+  var mobile = md.mobile();
+  var device = md.phone();
+
+  if (null == mobile) {
+    clientInfo.browser = ctzGetBrowser();
+    clientInfo.device = "desktop";
+    clientInfo.os = ctzGetOS();
+  }
+  else {
+    if (null == (clientInfo.browser = md.userAgent())) clientInfo.browser = "unknown";
+    if (null == (clientInfo.device = (null == device)? md.tablet() : device)) clientInfo.device = "unknown";
+    if (null == (clientInfo.os = md.os())) clientInfo.os = "unknown";
+  }
+
+  // Done;
+  return clientInfo;
+}
