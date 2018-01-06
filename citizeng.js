@@ -7,6 +7,7 @@ var express         = require('express'),
     http            = require('http'),
     https           = require('https'),
     crypto          = require('crypto'),
+    nodemailer      = require('nodemailer');
     passport        = require('passport'),
     path            = require('path'),
     LocalStrategy   = require('passport-local').Strategy,
@@ -116,6 +117,36 @@ function addUserInDatabase(db, email, name, password, sup, done) {
   });
 }
 
+/* Send mail */
+function sendMail(servermail, usermail, username, password, done) {
+  // Create nodemailer transport.
+  var transport = nodemailer.createTransport(servermail.transport);
+
+  // Setup mail option.
+  var mailOptions = {
+    from: transport.options.auth.user,
+    to: usermail,
+    subject: servermail.message.subject,
+    html: "Nom d'utilisateur: '<b>" + username + "</b>'<br/>Mot de passe: '<b>" + password + "</b>'</p>"
+  };
+
+  // Send mail with the password.
+  transport.sendMail(mailOptions, function(err, info){
+    if (err) {
+      done({message:err.message});
+
+      // Log.
+      console.log(err);
+    } else {
+      // Done.
+      done(null);
+
+      // Log.
+      console.log('Email sent: ' + info.response);
+    }
+  });
+}
+
 /* ================== */
 /* Passport functions */
 /* ================== */
@@ -200,7 +231,8 @@ var lifecycle = {init:null,fina:null};
 // Server object.
 const server =  { db:null
                 , http:null
-                , io:null };
+                , io:null
+                 , mail:null};
 
 /* Release server object */
 function finalize() {
@@ -356,7 +388,22 @@ exports.init = function(port, username, password, email, dirname) {
     // Done.
     return ;
   }
-  
+
+  // Mail configuration file.
+  const mailconf = ((null != dirname)? path.join(dirname, "mail.conf") : path.join(__dirname, "mail.conf"));
+
+  // Read mail configuration file.
+  fs.readFile(mailconf, 'utf-8', function (err, content) {
+    if (err) {
+      // Log.
+      console.log("Mail configuration file '" + mailconf + "' NOT found");
+    }
+    else {
+      // Load file content.
+      server.mail = JSON.parse(content);
+    }
+  });
+
   // Add default super user.
   masterusers.push({email:email, username:username, password:password, super:true, master:1});
 }
@@ -563,11 +610,8 @@ exports.run = function (init, fina) {
           // Add this new user.
           addUserInDatabase(server.db, usermail, username, newPassword, false, ackfn);
 
-          // Send mail with the password.
-console.log("====> '" + newPassword + "'");
-
-          // Done.
-          ackfn(null);
+          // Do send mail to the user.
+          sendMail(server.mail, usermail, username, newPassword, ackfn);
         }
         // Found.
         else {
@@ -578,12 +622,9 @@ console.log("====> '" + newPassword + "'");
 
             // Update password in the database.
             changePasswordInDatabase(server.db, username, newPassword, ackfn);
-            
-            // Send mail with the new password.
-console.log("====> '" + newPassword + "'");
 
-            // Done.
-            ackfn(null);
+            // Do send mail to the user.
+            sendMail(server.mail, usermail, username, newPassword, ackfn);
           }
           else {
             // Bad user.
