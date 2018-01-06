@@ -13,9 +13,10 @@
     <button type="button" onclick="doResetPassword()" id="idbuttonresetpassword">Reset Password</button>
     <div id="iddivadd" style="display:none;">
       <br/>
-      <input type="text" name="username" onblur="doValidateUser(this)", id="idinputusername"/>&nbsp;
+      <input type="text" name="username" onblur="doValidateUser(this)" id="idinputusername"/>&nbsp;
       <input type="password" name="password" onchange="doPasswordChange()" id="idpassword"/>&nbsp;
       <input type="password" name="passwordconfirm" onchange="doPasswordConfirmChange()" id="idpasswordconfirm"/>&nbsp;
+      <input type="email" name="email" id="idinputemail"/>&nbsp;
       <input type="checkbox" value="super" id="idcheckboxsuper"/><label for="idcheckboxsuper">Super</label>&nbsp;
       <button type="button" onclick="doAddUserConfirm()" id="idbuttonaddconfirm">Add New User</button>
       <br/>
@@ -37,7 +38,6 @@
     <link rel="stylesheet" type="text/css" href="/css/citizeng.css">
     <!-- Style -->
     <!-- Script -->
-    <script src="/citizeng.js/mobile-detect.min.js"></script>
     <script src="/citizeng.js/common.js"></script>
     <script src="/js/citizeng.js"></script>
     <script src="/socket.io/socket.io.js"></script>
@@ -49,6 +49,7 @@
                         , buttonresetpassword:null
                         , checkboxsuper:null
                         , divadd:null
+                        , inputemail:null
                         , inputusername:null
                         , password:null
                         , passwordconfirm:null
@@ -80,6 +81,7 @@
         if (null != (ctxuserform.buttonresetpassword  = document.getElementById("idbuttonresetpassword"))) {ctxuserform.buttonresetpassword.disabled = true;}
         if (null != (ctxuserform.checkboxsuper        = document.getElementById("idcheckboxsuper"))) {};
         if (null != (ctxuserform.divadd               = document.getElementById("iddivadd"))) {ctxuserform.divadd.style.display = "none";}
+        if (null != (ctxuserform.inputemail           = document.getElementById("idinputemail"))) {};
         if (null != (ctxuserform.inputusername        = document.getElementById("idinputusername"))) {};
         if (null != (ctxuserform.password             = document.getElementById("idpassword"))) {};
         if (null != (ctxuserform.passwordconfirm      = document.getElementById("idpasswordconfirm"))) {};
@@ -94,12 +96,8 @@
         // Reset users list.
         if (null != (divuserlist = document.getElementById("iddivuserlist"))) divuserlist.innerHTML = "";
 
-        // Retrieve client information.
-        clientinfo = ctzGetClientInfo();
-        socket.emit("console", JSON.stringify(clientinfo));
-
         // Custom initialization.
-        initadmin(clientinfo);
+        initadmin();
       }
 
       /* Refresh users table. */
@@ -115,13 +113,14 @@
           else {
             // Build users table.
             divusers += "<table style=\"border:1px solid black\">";
-            divusers += "<tr><th><input id=\"idcheckboxall\" type=\"checkbox\" name=\"allusers\" value=\"allusers\" onclick=\"doToggleUsers(this);\"></th><th>User Name</th><th>Super User</th></tr>";
+            divusers += "<tr><th><input id=\"idcheckboxall\" type=\"checkbox\" name=\"allusers\" value=\"allusers\" onclick=\"doToggleUsers(this);\"></th><th>User Name</th><th>Super User</th><th>E-mail</th></tr>";
             for (u in rows) {
               divusers += "<tr>";
               if ((0 != rows[u].master) || (whoami === rows[u].username)) disabled = "disabled"; else disabled = "";
               divusers += "<td><input id=\"idselect_" + u + "\" type=\"checkbox\" name=\"user\" value=\"" + u + "\" onclick=\"doSelectUser(this);\"" + disabled + ">";
               divusers += "<td id=\"idusername_" + u + "\">" + rows[u].username + "</td>";
               divusers += "<td id=\"idusersuper_" + u + "\">" + rows[u].super + "</td>";
+              divusers += "<td id=\"iduseremail_" + u + "\">" + rows[u].email + "</td>";
               divusers += "</tr>";
             }
             divusers += "</table>";
@@ -274,6 +273,7 @@
           // Add form is hidden.
           if (ctxuserform.divadd.style.display === "block") {
             ctxuserform.checkboxsuper.checked = false;
+            ctxuserform.inputemail.value = "";
             ctxuserform.inputusername.value = "";
             ctxuserform.password.value = "";
             ctxuserform.passwordconfirm.value = "";
@@ -331,7 +331,8 @@
           ctzToggleDiv(ctxuserform.divadd, "none");
         
           // Build new user object.
-          var newuser = { username:ctxuserform.inputusername.value
+          var newuser = { email:ctxuserform.inputemail.value
+                        , username:ctxuserform.inputusername.value
                         , password:ctxuserform.password.value
                         , super:(ctxuserform.checkboxsuper.checked)};
 
@@ -342,6 +343,7 @@
 
           // Reset contextual form.
           ctxuserform.buttonaddconfirm.disabled = false;
+          ctxuserform.inputemail.value = "";
           ctxuserform.inputusername.value = "";
           ctxuserform.password.value = "";
           ctxuserform.passwordconfirm.value = "";

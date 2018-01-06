@@ -94,6 +94,28 @@ function changePasswordInDatabase(db, username, newpassword, done) {
   });
 }
 
+/* Add user. */
+function addUserInDatabase(db, email, name, password, sup, done) {
+  if ((null == db) || (null == done)) return ;
+  if ((null == name) || (0 == name.length)) return ;
+  if ((null == password) || (0 == password.length)) return ;
+  
+  var passwddata = doHashPassword(password);
+  var query = "INSERT INTO users VALUES (\"" + email + "\",\"" + name + "\",\"" + passwddata.hash + "\",\"" + passwddata.salt + "\"," + ((sup)?1:0) + ", 0)";
+  db.run(query, function(err) {
+    if (err) {
+      done({message:err.message});
+    }
+    else {
+      // Ok.
+      done(null);
+
+      // Log.
+      console.log("useradd() : " + "'" + query + "'");
+    }
+  });
+}
+
 /* ================== */
 /* Passport functions */
 /* ================== */
@@ -223,7 +245,7 @@ process.on('SIGINT', () => {
 /* ================== */
 
 /* Initialize the server */
-exports.init = function(port, username, password, dirname) {
+exports.init = function(port, username, password, email, dirname) {
   // Already started.
   if (null != app) return ;
 
@@ -239,9 +261,11 @@ exports.init = function(port, username, password, dirname) {
   app.use(bodyParser.urlencoded({extended: true}));
 
   /* Initialize passposrt and and session for persistent login sessions. */
-  app.use(session(  { secret: "citizeng"
-                    , resave: true
-                    , saveUninitialized: true}));
+  app.use(session({
+    secret: "chainesecrete",
+    resave: true,
+    saveUninitialized: true
+  }));
   app.use(passport.initialize());
   app.use(passport.session());
   
@@ -253,7 +277,7 @@ exports.init = function(port, username, password, dirname) {
 
   if (null != dirname) {
     /* Authorize certificate directory for callee. */
-    app.use("/crt", express.static(path.join(dirname, "crt")));
+    app.use("/cert", express.static(path.join(dirname, "cert")));
     
     /* Authorize script directory for callee. */
     app.use("/js", express.static(path.join(dirname, "js")));
@@ -267,7 +291,7 @@ exports.init = function(port, username, password, dirname) {
   /* ==================== */
 
   // Certificate path.
-  const certpath = path.join(dirname, "crt");
+  const certpath = path.join(dirname, "cert");
   var certificate = { crt: null
                     , key: null
                     , pas: ""};
@@ -289,23 +313,15 @@ exports.init = function(port, username, password, dirname) {
     console.log("Certificate installed in '" + certpath + "'");
 
     // Start the HTTP server (secured).
-    if (0 < certificate.pas.length) {
-      if (null == (server.http = https.createServer ( { key:certificate.key
-                                                      , cert:certificate.crt
-                                                      , passphrase:certificate.pas}
+    if (null == (server.http = https.createServer ( { key:certificate.key
+                                                    , cert:certificate.crt
+                                                    , passphrase:certificate.pas}
                                                     , app).listen(port))) return server;
-    }
-    else {
-      if (null == (server.http = https.createServer ( { key:certificate.key
-                                                      , cert:certificate.crt}
-                                                    , app).listen(port))) return server;
-    }
   }
   catch(err) {
     // Oops.
     certificate.crt = null;
     certificate.key = null;
-    certificate.pas = "";
     console.log(err.message);
 
     // Start the HTTP server.
@@ -333,7 +349,7 @@ exports.init = function(port, username, password, dirname) {
   }
 
   // Database.
-  if (null == (server.db = new sqlite3.Database(path.join(dbdir, "users.db")))) {
+  if (null == (server.db = new sqlite3.Database(path.join(dbdir, "users_with_mail.db")))) {
     // Release server object.
     finalize();
 
@@ -342,7 +358,7 @@ exports.init = function(port, username, password, dirname) {
   }
   
   // Add default super user.
-  masterusers.push({username:username, password:password, super:true, master:1});
+  masterusers.push({email:email, username:username, password:password, super:true, master:1});
 }
 
 /* Run the server */
@@ -448,11 +464,11 @@ exports.run = function (init, fina) {
 
     // Database.
     server.db.serialize(function() {
-      server.db.run("CREATE TABLE IF NOT EXISTS users (username TEXT UNIQUE, password TEXT, salt TEXT, super INT, master INT)");
-      var stmt = server.db.prepare("INSERT OR IGNORE INTO users VALUES (?,?,?,?,?)");
+      server.db.run("CREATE TABLE IF NOT EXISTS users (email TEXT UNIQUE, username TEXT UNIQUE, password TEXT, salt TEXT, super INT, master INT)");
+      var stmt = server.db.prepare("INSERT OR IGNORE INTO users VALUES (?,?,?,?,?,?)");
       for (u in masterusers) {
         hashedpassword = doHashPassword(masterusers[u].password);
-        stmt.run(masterusers[u].username, hashedpassword.hash, hashedpassword.salt, masterusers[u].super, masterusers[u].master);
+        stmt.run(masterusers[u].email, masterusers[u].username, hashedpassword.hash, hashedpassword.salt, masterusers[u].super, masterusers[u].master);
       }
       stmt.finalize();
     });
@@ -467,12 +483,6 @@ exports.run = function (init, fina) {
 
       // Log.
       console.log("client disconnected");
-    });
-
-    // Simple message to server console.
-    socket.on("console", function(data) {
-      // Log.
-      console.log(data);
     });
 
     /* Check user name. */
@@ -498,7 +508,7 @@ exports.run = function (init, fina) {
 
     /* List users. */
     socket.on("userlist", function(data, ackfn) {
-      var query = "SELECT username, super, master FROM users";
+      var query = "SELECT username, super, master, email FROM users";
       server.db.all(query, function(err, rows) {
         if (err) {
           ackfn({message:err.message});
@@ -514,19 +524,7 @@ exports.run = function (init, fina) {
 
     /* Add user. */
     socket.on("useradd", function(data, ackfn) {
-      var passwddata = doHashPassword(data.password);
-      var query = "INSERT INTO users VALUES (\"" + data.username + "\",\"" + passwddata.hash + "\",\"" + passwddata.salt + "\"," + ((data.super)?1:0) + ", 0)";
-      server.db.run(query, function(err) {
-        if (err) {
-          ackfn({message:err.message});
-        }
-        else {
-          ackfn({message:"ok"});
-
-          // Log.
-          console.log("useradd() : " + "'" + query + "'");
-        }
-      });
+      addUserInDatabase(server.db, data.email, data.username, data.password, data.super, ackfn);
     });
 
     /* Remove user. */
@@ -547,7 +545,52 @@ exports.run = function (init, fina) {
 
     /* Change user password. */
     socket.on("userchangepassword", function(data, ackfn) {
-      changePasswordInDatabase(server.db, data.username, data.newpassword, ackfn)
+      changePasswordInDatabase(server.db, data.username, data.newpassword, ackfn);
+    });
+
+    /* Change user password. */
+    socket.on("userregister", function(username, usermail, ackfn) {
+      var query = "SELECT email, username FROM users WHERE email=\"" + usermail + "\"";
+      server.db.get(query, function(err, row) {
+        if (err) {
+          ackfn({message:err.message});
+        }
+        // Not found.
+        else if (null == row) {
+          // Generate new password.
+          var newPassword = genRandomString(10);
+
+          // Add this new user.
+          addUserInDatabase(server.db, usermail, username, newPassword, false, ackfn);
+
+          // Send mail with the password.
+console.log("====> '" + newPassword + "'");
+
+          // Done.
+          ackfn(null);
+        }
+        // Found.
+        else {
+          // User name and mail matches.
+          if((row.email === usermail) && (row.username === username)) {
+            // Generate new password.
+            var newPassword = genRandomString(10);
+
+            // Update password in the database.
+            changePasswordInDatabase(server.db, username, newPassword, ackfn);
+            
+            // Send mail with the new password.
+console.log("====> '" + newPassword + "'");
+
+            // Done.
+            ackfn(null);
+          }
+          else {
+            // Bad user.
+            ackfn({message:"KO"});
+          }
+        }
+      });
     });
 
     // Customized Socket.io functions.
@@ -683,7 +726,6 @@ exports.ioset = function(method, func) {
 
   // Reserved.
   if ((method == null)
-  ||  (method === "console")
   ||  (method === "useradd")
   ||  (method === "userdelete")
   ||  (method === "userlist")

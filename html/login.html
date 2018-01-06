@@ -10,6 +10,7 @@
       <form method="post" action="/login" onsubmit="return validateBeforeSubmit();">
         <input type="text" name="username" onblur="validateUser(this)" id="inputusername"/><span id="spanusername">User</span><br/>
         <input type="password" name="password" onblur="validatePassword(this)" id="inputpassword"/><span id="spanpassword">Password</span><br/>
+        <div id="divmail" style="display:none;"><input type="text" name="usermail" onblur="validateMail(this)" id="inputusermail"/><span id="spanusermail">Mail</span><br/></div>
         <div id="divpasswordnew" style="display:none;">
           <br/>
           <input type="password" name="newpassword" id="inputnewpassword" onblur="newPasswordChange()"/><span id="spannewpassword">New Password</span><br/>
@@ -37,15 +38,18 @@
       var elemdivloginfooter = null;
       var messagelogin =  [ "!! Password field is empty !!"
                           , "!! Unknown user !!"
-                          , "!! New password does not match !!"];
+                          , "!! New password does not match !!"
+                          , "!! e-mail not valid !!"];
       var ctxloginform =  { buttonpasswordchange:null
+                          , divmail:null
+                          , inputusername:null
+                          , inputpassword:null
+                          , inputmail:null
                           , divpasswordnew:null
                           , passwordnew:null
                           , passwordnewconfirm:null};
       var buttonlogin = null;
       var spanloginmess = null;
-      var inputusername = null;
-      var password = null;
       var socket = io.connect();
 
       /* Initialization function. */
@@ -57,9 +61,25 @@
 
         // Reset contextual form.
         if (null != (ctxloginform.buttonpasswordchange  = document.getElementById("buttonpasswordchange"))) {ctxloginform.buttonpasswordchange.disabled = true;}
+        if (null != (ctxloginform.divmail               = document.getElementById("divmail"))) {ctxloginform.divmail.style.display = "none";}
         if (null != (ctxloginform.divpasswordnew        = document.getElementById("divpasswordnew"))) {ctxloginform.divpasswordnew.style.display = "none";}
         if (null != (ctxloginform.passwordnew           = document.getElementById("inputnewpassword"))) {ctxloginform.passwordnew.value = "";}
         if (null != (ctxloginform.passwordnewconfirm    = document.getElementById("inputnewpasswordconfirm"))) {ctxloginform.passwordnewconfirm.value = "";}
+
+        // Set user name input element.
+        if (null != (ctxloginform.inputusername = document.getElementById("inputusername"))) {
+          ctxloginform.inputusername.value = "";
+        }
+
+        // Set user password element.
+        if (null != (ctxloginform.inputpassword = document.getElementById("inputpassword"))) {
+          ctxloginform.inputpassword.value = "";
+        }
+
+        // Set user mail element.
+        if (null != (ctxloginform.inputmail = document.getElementById("inputusermail"))) {
+          ctxloginform.inputmail.value = "";
+        }
 
         // Set login button element.
         if (null != (buttonlogin = document.getElementById("buttonlogin"))) {
@@ -69,16 +89,6 @@
         // Set message span element.
         if (null != (spanloginmess = document.getElementById("spanloginmess"))) {
           spanloginmess.innerHTML = "";
-        }
-        
-        // Set user name input element.
-        if (null != (inputusername = document.getElementById("inputusername"))) {
-          inputusername.value = "";
-        }
-
-        // Set user password element.
-        if (null != (password = document.getElementById("inputpassword"))) {
-          password.value = "";
         }
 
         // Retrieve client information.
@@ -91,21 +101,33 @@
 
       /* User name validation function. */
       function validateUser(ithis) {
+        elemdivloginfooter.className = "";
+        spanloginmess.innerHTML = "";
+        ctxloginform.inputpassword.disabled = true;
+        ctxloginform.inputmail.disabled = true;
+        ctxloginform.divmail.style.display = "none";
         // Field is not empty.
         if (0 < ithis.value.length) {
           buttonlogin.disabled = true;
-          spanloginmess.innerHTML = "";
           ctxloginform.buttonpasswordchange.disabled = true;
 
           // Check user name is registered.
           socket.emit("userpresent", ithis.value, function(err, row) {
             // User not found.
             if (null != err) {
+              elemdivloginfooter.className = "loginmessage";
               spanloginmess.innerHTML = messagelogin[1];//(0 < err.message.length)? (err.message) : ("!!? Bad response for '" + ithis.value + "' ?!!");
+              ctxloginform.inputmail.disabled = false;
+              ctxloginform.divmail.style.display = "block";
+              ctxloginform.buttonpasswordchange.disabled = true;
+              ctxloginform.passwordnew.disabled = true;
+              ctxloginform.passwordnewconfirm.disabled = true;
             }
             // User found.
             else {
               buttonlogin.disabled = false;
+              ctxloginform.inputpassword.disabled = false;
+              ctxloginform.inputmail.value = "";
               ctxloginform.buttonpasswordchange.disabled = false;
               ctxloginform.passwordnew.disabled = false;
               ctxloginform.passwordnewconfirm.disabled = false;
@@ -132,9 +154,12 @@
         // Field is not empty.
         if (0 < ithis.value.length) {
           buttonlogin.disabled = false;
+          ctxloginform.inputmail.value = "";
           ctxloginform.buttonpasswordchange.disabled = false;
+          ctxloginform.divmail.style.display = "none";
           ctxloginform.passwordnew.disabled = false;
           ctxloginform.passwordnewconfirm.disabled = false;
+          elemdivloginfooter.className = "";
           spanloginmess.innerHTML = "";
         }
         // Field is empty.
@@ -143,8 +168,34 @@
           ctxloginform.buttonpasswordchange.disabled = true;
           ctxloginform.passwordnew.disabled = true;
           ctxloginform.passwordnewconfirm.disabled = true;
-          spanloginmess.innerHTML = messagelogin[0];
+          if( 0 < ctxloginform.inputusername.value.length ) {
+            ctxloginform.inputmail.disabled = false;
+            ctxloginform.divmail.style.display = "block";
+            elemdivloginfooter.className = "loginmessage";
+            spanloginmess.innerHTML = messagelogin[0];
+          }
+          else {
+            ctxloginform.divmail.style.display = "none";
+          }
         }
+      }
+
+      /* User mail validation function. */
+      function validateMail(iThis) {
+        var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        if( !re.test(iThis.value) ) {
+          buttonlogin.disabled = true;
+          elemdivloginfooter.className = "loginmessage";
+          spanloginmess.innerHTML = messagelogin[3];
+        }
+        else {
+          buttonlogin.disabled = false;
+          elemdivloginfooter.className = "";
+          spanloginmess.innerHTML = "";
+        }
+        ctxloginform.buttonpasswordchange.disabled = true;
+        ctxloginform.passwordnew.disabled = true;
+        ctxloginform.passwordnewconfirm.disabled = true;
       }
 
       /* Vaidation function */
@@ -152,12 +203,43 @@
         if (ctxloginform.passwordnew.value !== ctxloginform.passwordnewconfirm.value) {
           ctxloginform.passwordnew.value = "";
           ctxloginform.passwordnewconfirm.value = "";
+          
+          elemdivloginfooter.className = "loginmessage";
           spanloginmess.innerHTML = messagelogin[2];
         }
         else {
           // Password field is empty.
-          if (0 == password.value.length) {
-            spanloginmess.innerHTML = messagelogin[0];
+          if (0 == ctxloginform.inputpassword.value.length) {
+            if( 0 == ctxloginform.inputmail.value.length ) {
+              ctxloginform.inputmail.disabled = false;
+              ctxloginform.divmail.style.display = "block";
+              elemdivloginfooter.className = "loginmessage";
+              spanloginmess.innerHTML = messagelogin[0];
+            }
+            else {
+              // Check user name is registered.
+              socket.emit("userregister", ctxloginform.inputusername.value, ctxloginform.inputmail.value, function(err) {
+                // User present or input mismatch.
+                if(null != err) {
+                  // E-mail not valid for this user.
+                  if("KO" === err.message) {
+                  }
+                  //else if() {
+                  //}
+                  // Other error.
+                  else {
+                  }
+                }
+                // Registration successfull.
+                else {
+                  // Emit new user creation.
+                  alert("reinitialisation : '" + ctxloginform.inputusername.value + "' == '" + ctxloginform.inputmail.value + "'");
+                }
+              });
+
+              // Ok.
+              return true;
+            }
           }
           else {
             // Ok.
