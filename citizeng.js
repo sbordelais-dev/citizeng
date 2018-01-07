@@ -608,10 +608,12 @@ exports.run = function (init, fina) {
           var newPassword = genRandomString(10);
 
           // Add this new user.
-          addUserInDatabase(server.db, usermail, username, newPassword, false, ackfn);
-
-          // Do send mail to the user.
-          sendMail(server.mail, usermail, username, newPassword, ackfn);
+          addUserInDatabase(server.db, usermail, username, newPassword, false, function(err) {
+            if (null == err) {
+              // Do send mail to the user.
+              sendMail(server.mail, usermail, username, newPassword, ackfn);
+            }
+          });
         }
         // Found.
         else {
@@ -621,10 +623,12 @@ exports.run = function (init, fina) {
             var newPassword = genRandomString(10);
 
             // Update password in the database.
-            changePasswordInDatabase(server.db, username, newPassword, ackfn);
-
-            // Do send mail to the user.
-            sendMail(server.mail, usermail, username, newPassword, ackfn);
+            changePasswordInDatabase(server.db, username, newPassword, function(err) {
+              if (null == err) {
+                // Do send mail to the user.
+                sendMail(server.mail, usermail, username, newPassword, ackfn);
+              }
+            });
           }
           else {
             // Bad user.

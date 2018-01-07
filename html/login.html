@@ -39,7 +39,8 @@
       var messagelogin =  [ "!! Password field is empty !!"
                           , "!! Unknown user !!"
                           , "!! New password does not match !!"
-                          , "!! e-mail not valid !!"];
+                          , "!! e-mail not valid !!"
+                          , "A mail with identifier has been send"];
       var ctxloginform =  { buttonpasswordchange:null
                           , divmail:null
                           , inputusername:null
@@ -220,20 +221,18 @@
               // Check user name is registered.
               socket.emit("userregister", ctxloginform.inputusername.value, ctxloginform.inputmail.value, function(err) {
                 // User present or input mismatch.
-                if(null != err) {
+                if (null != err) {
                   // E-mail not valid for this user.
                   if("KO" === err.message) {
                   }
-                  //else if() {
-                  //}
                   // Other error.
                   else {
                   }
                 }
                 // Registration successfull.
                 else {
-                  // Emit new user creation.
-                  alert("reinitialisation : '" + ctxloginform.inputusername.value + "' == '" + ctxloginform.inputmail.value + "'");
+                  elemdivloginfooter.className = "loginmessage";
+                  spanloginmess.innerHTML = messagelogin[4];
                 }
               });
 
