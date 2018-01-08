@@ -127,7 +127,7 @@ function sendMail(servermail, usermail, username, password, done) {
     from: transport.options.auth.user,
     to: usermail,
     subject: servermail.message.subject,
-    html: "Nom d'utilisateur: '<b>" + username + "</b>'<br/>Mot de passe: '<b>" + password + "</b>'</p>"
+    text: "Nom d'utilisateur: " + username + "\nMot de passe: " + password
   };
 
   // Send mail with the password.
