@@ -1,6 +1,6 @@
 {
   "name": "citizeng",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "description": "A turnkey username-password framework to create a systematically-authenticated HTTP-server.",
   "main": "citizeng.js",
   "dependencies": {
