@@ -112,7 +112,7 @@ citizeng.run();
 ### Support Javascript and CSS references
 You will need to add the current path during initialization:
 ```JavaScript
-citizeng.init(3030, "Groot", "root", __dirname);
+citizeng.init(3030, "Groot", "root", Groot@mymail.com, __dirname);
 ```
 Then, create subfolders named `/js` and `/css` in the current path to respectively put Javacript and CSS files.
 
