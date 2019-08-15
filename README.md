@@ -59,7 +59,7 @@ git clone https://github.com/LordHadder/citizeng.git mydir
 cd mydir
 
 # Install required modules.
-npm install express passport passport-local body-parser express-session sqlite3 socket.io --save
+npm install express passport passport-local body-parser express-session sqlite3 socket.io nodemailer --save
 
 # Run the demo.
 node citizeng-demo
