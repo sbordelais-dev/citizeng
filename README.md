@@ -80,7 +80,7 @@ To access services, just make [express](http://expressjs.com/)-like GET and POST
 ```JavaScript
 citizeng.get  ( "/"
               , path.join(__dirname, "index.html")         /* HTML file for basic user */
-              , path.join(__dirname, "indexsuper.html"));  /* HTML file for suser user */
+              , path.join(__dirname, "indexsuper.html"));  /* HTML file for super user */
 ```
 Declaring a static **reserved** route may have no effect. The user will be redirected to the default administration page.
 ```JavaScript
