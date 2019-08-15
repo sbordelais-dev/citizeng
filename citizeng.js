@@ -791,3 +791,8 @@ exports.ioset = function(method, func) {
   // Log.
   console.log("ioset() : Registering Socket.io method " + "'" + method + "'");
 };
+
+/* Register custom Socket.io function */
+exports.ioemit = function(message, data) {
+  server.io.emit(message, data);
+};
