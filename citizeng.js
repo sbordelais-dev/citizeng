@@ -665,6 +665,22 @@ exports.get = function(route, file, superfile, func) {
     return ;
   }
 
+  // Reserved route.
+  if( route === "/saveas" ) {
+    // Do GET.
+    app.get(route, isLoggedIn, function(req, res) {
+      if ((null != func) && (0 != req.query.length)) {
+        func({username:req.user.username, super:req.user.super, query:req.query}, function ackfnc(restout) {
+          res.download(restout);
+        });
+      }
+      else res.status(404).sendFile(htmlpath_404);
+    });
+ 
+    // Get out.
+    return ;
+  }
+ 
   // Log.
   console.log("get() : Registering GET method route " + "'" + route + "'");
 
@@ -796,4 +812,3 @@ exports.ioset = function(method, func) {
 exports.ioemit = function(message, data) {
   server.io.emit(message, data);
 };
-
