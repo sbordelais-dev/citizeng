@@ -316,6 +316,9 @@ exports.init = function(port, username, password, email, dirname) {
 
     /* Authorize style directory for callee. */
     app.use("/css", express.static(path.join(dirname, "css")));
+    
+    /* Authorize pictures directory for callee. */
+    app.use("/pictures", express.static(path.join(dirname, "pictures")));
   }
 
   /* ==================== */
